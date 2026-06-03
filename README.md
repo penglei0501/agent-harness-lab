@@ -28,6 +28,7 @@ Harness = Tools
 - 新增 `agent_lab` CLI：支持本地任务创建、查看、认领、完成，以及 skills/docs 资产索引。
 - 新增 JSONL 事件日志：记录任务创建、认领、完成等本地运行时事件。
 - 新增 Web Dashboard：聚合展示任务状态、技能索引、文档统计和事件日志概览。
+- Dashboard 支持任务依赖图和事件时间线，展示任务阻塞关系与运行轨迹。
 - 实现 Subagent 上下文隔离：将探索性任务放入独立 `messages[]`，减少主上下文污染。
 - 实现 Skill 按需加载：只在需要时加载领域知识，降低 system prompt 占用。
 - 实现上下文压缩策略：通过微压缩、自动压缩和手动压缩支撑长会话。
@@ -218,6 +219,7 @@ Implemented capabilities:
 - 抽象 `agent_lab` CLI，支持任务创建、查看、认领、完成和 JSON 文件持久化。
 - 实现基于 JSONL 的事件日志系统，记录任务生命周期并支持 `events list/tail` 查询。
 - 构建 Web Dashboard，聚合展示 tasks、skills、docs 和 events 的本地运行状态。
+- Dashboard 支持任务依赖图和事件时间线，用于观察任务阻塞关系与运行轨迹。
 - 实现文件持久化 DAG 任务系统和 JSONL mailbox，支持多 Agent 协作、任务认领和协议握手。
 - 使用 Next.js 构建可视化学习站，展示 Agent Harness 的架构演进、执行流程和课程内容。
 - 配置 pytest 与 GitHub Actions，保障 Python 示例和 Web 构建稳定性。
@@ -226,7 +228,7 @@ Implemented capabilities:
 ## Future Improvements
 
 - 抽象统一 CLI，例如 `agent-lab run --mode s03`、`agent-lab tasks list`。
-- 扩展 Dashboard，加入工具调用、任务依赖图、team inbox 和 worktree 状态。
+- 扩展 Dashboard，加入工具调用、team inbox 和 worktree 状态。
 - 增强任务系统，加入 priority、labels、retry 和更完整的依赖解锁策略。
 - 增加端到端 Demo，让用户从 Web 页面触发一次 agent task 并观察执行流程。
 - 补充架构图、截图和部署链接，使项目更适合公开展示。

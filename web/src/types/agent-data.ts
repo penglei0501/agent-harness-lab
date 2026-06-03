@@ -43,6 +43,15 @@ export interface DashboardTask {
   blockedBy: string[];
 }
 
+export interface DashboardTaskDependency {
+  fromId: string;
+  fromSubject: string;
+  fromStatus: string;
+  toId: string;
+  toSubject: string;
+  toStatus: string;
+}
+
 export interface DashboardSkill {
   name: string;
   description: string;
@@ -64,6 +73,7 @@ export interface DashboardData {
     in_progress: number;
     completed: number;
     items: DashboardTask[];
+    dependencies: DashboardTaskDependency[];
   };
   skills: {
     total: number;

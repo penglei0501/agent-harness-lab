@@ -17,9 +17,12 @@
     "events": "事件",
     "recent_tasks": "最近任务",
     "recent_events": "最近事件",
+    "dependency_graph": "任务依赖图",
+    "event_timeline": "事件时间线",
     "skill_index": "技能索引",
     "doc_coverage": "文档覆盖",
     "empty_events": "还没有记录事件。",
+    "empty_dependencies": "还没有任务依赖。",
     "owner": "负责人",
     "blocked_by": "依赖"
   },

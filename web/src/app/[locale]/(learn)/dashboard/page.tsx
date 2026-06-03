@@ -1,4 +1,6 @@
 import { Card, CardHeader, CardTitle } from "@/components/ui/card";
+import { EventTimeline } from "@/components/dashboard/event-timeline";
+import { TaskDependencyGraph } from "@/components/dashboard/task-dependency-graph";
 import { getTranslations } from "@/lib/i18n-server";
 import type { DashboardData, DashboardTask } from "@/types/agent-data";
 import dashboardJson from "@/data/generated/dashboard.json";
@@ -111,29 +113,24 @@ export default async function DashboardPage({
         </div>
       </div>
 
-      <Card className="mt-6">
-        <CardHeader>
-          <CardTitle>{t("recent_events")}</CardTitle>
-        </CardHeader>
-        {data.events.recent.length ? (
-          <div className="space-y-3">
-            {data.events.recent.map((event, index) => (
-              <div
-                key={`${event.timestamp}-${event.type}-${index}`}
-                className="grid gap-1 border-b border-zinc-100 pb-3 text-sm last:border-b-0 last:pb-0 dark:border-zinc-800 md:grid-cols-[180px_150px_1fr]"
-              >
-                <span className="font-mono text-xs text-zinc-500">{event.timestamp || "-"}</span>
-                <span className="font-medium">{event.type}</span>
-                <span className="text-zinc-600 dark:text-zinc-300">
-                  #{event.taskId} {event.subject}
-                </span>
-              </div>
-            ))}
-          </div>
-        ) : (
-          <p className="text-sm text-zinc-500 dark:text-zinc-400">{t("empty_events")}</p>
-        )}
-      </Card>
+      <div className="mt-6 grid gap-6 lg:grid-cols-2">
+        <Card>
+          <CardHeader>
+            <CardTitle>{t("dependency_graph")}</CardTitle>
+          </CardHeader>
+          <TaskDependencyGraph
+            dependencies={data.tasks.dependencies}
+            emptyLabel={t("empty_dependencies")}
+          />
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>{t("event_timeline")}</CardTitle>
+          </CardHeader>
+          <EventTimeline events={data.events.recent} emptyLabel={t("empty_events")} />
+        </Card>
+      </div>
     </div>
   );
 }

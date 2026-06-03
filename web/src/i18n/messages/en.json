@@ -17,9 +17,12 @@
     "events": "Events",
     "recent_tasks": "Recent Tasks",
     "recent_events": "Recent Events",
+    "dependency_graph": "Task Dependency Graph",
+    "event_timeline": "Event Timeline",
     "skill_index": "Skill Index",
     "doc_coverage": "Doc Coverage",
     "empty_events": "No events recorded yet.",
+    "empty_dependencies": "No task dependencies found.",
     "owner": "Owner",
     "blocked_by": "Blocked By"
   },

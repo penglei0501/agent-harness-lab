@@ -9,6 +9,7 @@ import type {
   DashboardEvent,
   DashboardSkill,
   DashboardTask,
+  DashboardTaskDependency,
 } from "../src/types/agent-data";
 import { VERSION_META, VERSION_ORDER, LEARNING_PATH } from "../src/lib/constants";
 
@@ -191,6 +192,22 @@ function buildDashboardData(docs: DocContent[]): DashboardData {
   const statusCount = (status: string) =>
     taskItems.filter((task) => task.status === status).length;
 
+  const taskById = new Map(taskItems.map((task) => [task.id, task]));
+  const dependencyItems: DashboardTaskDependency[] = [];
+  for (const task of taskItems) {
+    for (const dependencyId of task.blockedBy) {
+      const dependency = taskById.get(dependencyId);
+      dependencyItems.push({
+        fromId: dependencyId,
+        fromSubject: dependency?.subject ?? "(missing task)",
+        fromStatus: dependency?.status ?? "missing",
+        toId: task.id,
+        toSubject: task.subject,
+        toStatus: task.status,
+      });
+    }
+  }
+
   const skillItems: DashboardSkill[] = [];
   if (fs.existsSync(SKILLS_DIR)) {
     const skillDirs = fs
@@ -239,6 +256,7 @@ function buildDashboardData(docs: DocContent[]): DashboardData {
       in_progress: statusCount("in_progress"),
       completed: statusCount("completed"),
       items: taskItems,
+      dependencies: dependencyItems,
     },
     skills: {
       total: skillItems.length,
