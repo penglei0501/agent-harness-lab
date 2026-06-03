@@ -29,6 +29,7 @@ Harness = Tools
 - 新增 JSONL 事件日志：记录任务创建、认领、完成等本地运行时事件。
 - 新增 Web Dashboard：聚合展示任务状态、技能索引、文档统计和事件日志概览。
 - Dashboard 支持任务依赖图和事件时间线，展示任务阻塞关系与运行轨迹。
+- 新增 `demo seed` 命令：一键生成 Dashboard 演示任务、依赖和事件数据。
 - 实现 Subagent 上下文隔离：将探索性任务放入独立 `messages[]`，减少主上下文污染。
 - 实现 Skill 按需加载：只在需要时加载领域知识，降低 system prompt 占用。
 - 实现上下文压缩策略：通过微压缩、自动压缩和手动压缩支撑长会话。
@@ -136,11 +137,12 @@ python -m agent_lab tasks claim 6 --owner penglei
 python -m agent_lab tasks complete 6
 python -m agent_lab events list
 python -m agent_lab events tail --limit 10
+python -m agent_lab demo seed
 python -m agent_lab skills list
 python -m agent_lab docs list
 ```
 
-It provides a project-specific tooling layer over the task board, event log, skill files, and course content. Task commands persist local state in `.tasks/task_N.json`; task lifecycle events are appended to `.agent_lab/events.jsonl`, which can later feed a Web dashboard or runtime timeline.
+It provides a project-specific tooling layer over the task board, event log, skill files, and course content. Task commands persist local state in `.tasks/task_N.json`; task lifecycle events are appended to `.agent_lab/events.jsonl`, which can later feed a Web dashboard or runtime timeline. Use `python -m agent_lab demo seed` to populate demo tasks and events before opening the dashboard.
 
 ### 2. Python Agent Examples
 
@@ -220,6 +222,7 @@ Implemented capabilities:
 - 实现基于 JSONL 的事件日志系统，记录任务生命周期并支持 `events list/tail` 查询。
 - 构建 Web Dashboard，聚合展示 tasks、skills、docs 和 events 的本地运行状态。
 - Dashboard 支持任务依赖图和事件时间线，用于观察任务阻塞关系与运行轨迹。
+- 新增 demo seed 命令，一键生成任务、依赖和事件数据，支持 Dashboard 快速演示。
 - 实现文件持久化 DAG 任务系统和 JSONL mailbox，支持多 Agent 协作、任务认领和协议握手。
 - 使用 Next.js 构建可视化学习站，展示 Agent Harness 的架构演进、执行流程和课程内容。
 - 配置 pytest 与 GitHub Actions，保障 Python 示例和 Web 构建稳定性。
@@ -230,7 +233,7 @@ Implemented capabilities:
 - 抽象统一 CLI，例如 `agent-lab run --mode s03`、`agent-lab tasks list`。
 - 扩展 Dashboard，加入工具调用、team inbox 和 worktree 状态。
 - 增强任务系统，加入 priority、labels、retry 和更完整的依赖解锁策略。
-- 增加端到端 Demo，让用户从 Web 页面触发一次 agent task 并观察执行流程。
+- 增加端到端交互 Demo，让用户从 Web 页面触发一次 agent task 并观察执行流程。
 - 补充架构图、截图和部署链接，使项目更适合公开展示。
 
 ## Project Origin

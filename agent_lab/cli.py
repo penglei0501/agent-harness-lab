@@ -6,6 +6,7 @@ import argparse
 from collections.abc import Sequence
 from pathlib import Path
 
+from .demo import seed_demo_data
 from .docs import load_docs
 from .events import load_events, tail_events
 from .paths import REPO_ROOT
@@ -151,6 +152,15 @@ def tail_events_command(args: argparse.Namespace) -> int:
     return 0
 
 
+def seed_demo_command(args: argparse.Namespace) -> int:
+    result = seed_demo_data(args.tasks_dir, args.events_path)
+    if result.created:
+        print(f"Seeded demo tasks: {', '.join(result.task_ids)}")
+    else:
+        print(f"Demo tasks already exist: {', '.join(result.task_ids)}")
+    return 0
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         prog="agent_lab",
@@ -222,6 +232,23 @@ def build_parser() -> argparse.ArgumentParser:
     events_tail = events_sub.add_parser("tail", help="Show recent events")
     events_tail.add_argument("--limit", type=int, default=10, help="Number of events to show")
     events_tail.set_defaults(func=tail_events_command)
+
+    demo_parser = subparsers.add_parser("demo", help="Generate local demo data")
+    demo_parser.add_argument(
+        "--tasks-dir",
+        type=Path,
+        default=None,
+        help=argparse.SUPPRESS,
+    )
+    demo_parser.add_argument(
+        "--events-path",
+        type=Path,
+        default=None,
+        help=argparse.SUPPRESS,
+    )
+    demo_sub = demo_parser.add_subparsers(dest="action", required=True)
+    demo_seed = demo_sub.add_parser("seed", help="Seed dashboard demo tasks and events")
+    demo_seed.set_defaults(func=seed_demo_command)
 
     return parser
 

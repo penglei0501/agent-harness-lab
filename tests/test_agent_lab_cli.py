@@ -156,3 +156,33 @@ def test_cli_task_lifecycle(tmp_path: Path, capsys) -> None:
     events_tail = capsys.readouterr()
     assert "task_completed" in events_tail.out
     assert "task_created" not in events_tail.out
+
+
+def test_cli_demo_seed_is_non_destructive(tmp_path: Path, capsys) -> None:
+    events_path = tmp_path / "events.jsonl"
+    base_args = [
+        "demo",
+        "--tasks-dir",
+        str(tmp_path),
+        "--events-path",
+        str(events_path),
+        "seed",
+    ]
+
+    assert main(base_args) == 0
+    seeded = capsys.readouterr()
+    assert "Seeded demo tasks" in seeded.out
+
+    tasks = load_tasks(tmp_path)
+    assert len(tasks) == 4
+    assert any(task.status == "in_progress" for task in tasks)
+    assert any(task.blocked_by for task in tasks)
+
+    events = load_events(events_path)
+    assert [event.event_type for event in events].count("task_created") == 4
+    assert [event.event_type for event in events].count("task_completed") == 2
+
+    assert main(base_args) == 0
+    repeated = capsys.readouterr()
+    assert "Demo tasks already exist" in repeated.out
+    assert len(load_tasks(tmp_path)) == 4
