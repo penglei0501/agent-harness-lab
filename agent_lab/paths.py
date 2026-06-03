@@ -9,3 +9,5 @@ REPO_ROOT = Path(__file__).resolve().parents[1]
 TASKS_DIR = REPO_ROOT / ".tasks"
 SKILLS_DIR = REPO_ROOT / "skills"
 DOCS_DIR = REPO_ROOT / "docs"
+AGENT_LAB_DIR = REPO_ROOT / ".agent_lab"
+EVENTS_PATH = AGENT_LAB_DIR / "events.jsonl"

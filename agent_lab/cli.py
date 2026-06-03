@@ -7,6 +7,7 @@ from collections.abc import Sequence
 from pathlib import Path
 
 from .docs import load_docs
+from .events import load_events, tail_events
 from .paths import REPO_ROOT
 from .skills import load_skills
 from .tasks import claim_task, complete_task, create_task, get_task, load_tasks
@@ -62,6 +63,7 @@ def create_task_command(args: argparse.Namespace) -> int:
         owner=args.owner,
         blocked_by=_parse_blocked_by(args.blocked_by),
         tasks_dir=args.tasks_dir,
+        events_path=args.events_path,
     )
     print(f"Created task {task.id}: {task.subject}")
     return 0
@@ -79,7 +81,7 @@ def show_task_command(args: argparse.Namespace) -> int:
 
 def claim_task_command(args: argparse.Namespace) -> int:
     try:
-        task = claim_task(args.task_id, args.owner, args.tasks_dir)
+        task = claim_task(args.task_id, args.owner, args.tasks_dir, args.events_path)
     except FileNotFoundError as exc:
         print(str(exc))
         return 1
@@ -89,7 +91,7 @@ def claim_task_command(args: argparse.Namespace) -> int:
 
 def complete_task_command(args: argparse.Namespace) -> int:
     try:
-        task = complete_task(args.task_id, args.tasks_dir)
+        task = complete_task(args.task_id, args.tasks_dir, args.events_path)
     except FileNotFoundError as exc:
         print(str(exc))
         return 1
@@ -127,6 +129,28 @@ def list_docs(_: argparse.Namespace) -> int:
     return 0
 
 
+def _event_rows(events) -> list[list[str]]:
+    rows: list[list[str]] = []
+    for event in events:
+        task_id = str(event.payload.get("task_id", "-"))
+        owner = str(event.payload.get("owner", "-") or "-")
+        subject = str(event.payload.get("subject", "-"))
+        rows.append([event.timestamp, event.event_type, task_id, owner, subject])
+    return rows
+
+
+def list_events_command(args: argparse.Namespace) -> int:
+    events = load_events(args.events_path)
+    _print_table(["Timestamp", "Type", "Task", "Owner", "Subject"], _event_rows(events))
+    return 0
+
+
+def tail_events_command(args: argparse.Namespace) -> int:
+    events = tail_events(args.limit, args.events_path)
+    _print_table(["Timestamp", "Type", "Task", "Owner", "Subject"], _event_rows(events))
+    return 0
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         prog="agent_lab",
@@ -137,6 +161,12 @@ def build_parser() -> argparse.ArgumentParser:
     tasks_parser = subparsers.add_parser("tasks", help="Manage local task board")
     tasks_parser.add_argument(
         "--tasks-dir",
+        type=Path,
+        default=None,
+        help=argparse.SUPPRESS,
+    )
+    tasks_parser.add_argument(
+        "--events-path",
         type=Path,
         default=None,
         help=argparse.SUPPRESS,
@@ -179,6 +209,20 @@ def build_parser() -> argparse.ArgumentParser:
     docs_list = docs_sub.add_parser("list", help="List docs/en and docs/zh")
     docs_list.set_defaults(func=list_docs)
 
+    events_parser = subparsers.add_parser("events", help="Inspect local event log")
+    events_parser.add_argument(
+        "--events-path",
+        type=Path,
+        default=None,
+        help=argparse.SUPPRESS,
+    )
+    events_sub = events_parser.add_subparsers(dest="action", required=True)
+    events_list = events_sub.add_parser("list", help="List all events")
+    events_list.set_defaults(func=list_events_command)
+    events_tail = events_sub.add_parser("tail", help="Show recent events")
+    events_tail.add_argument("--limit", type=int, default=10, help="Number of events to show")
+    events_tail.set_defaults(func=tail_events_command)
+
     return parser
 
 
@@ -189,4 +233,8 @@ def main(argv: Sequence[str] | None = None) -> int:
         from .paths import TASKS_DIR
 
         args.tasks_dir = TASKS_DIR
+    if getattr(args, "events_path", None) is None:
+        from .paths import EVENTS_PATH
+
+        args.events_path = EVENTS_PATH
     return args.func(args)

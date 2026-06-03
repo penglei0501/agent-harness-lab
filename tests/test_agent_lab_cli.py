@@ -5,6 +5,7 @@ from pathlib import Path
 
 from agent_lab.cli import main
 from agent_lab.docs import load_docs
+from agent_lab.events import append_event, load_events, tail_events
 from agent_lab.skills import load_skills
 from agent_lab.tasks import claim_task, complete_task, create_task, load_tasks
 
@@ -31,24 +32,45 @@ def test_load_tasks_from_directory(tmp_path: Path) -> None:
 
 
 def test_create_claim_and_complete_task(tmp_path: Path) -> None:
+    events_path = tmp_path / "events.jsonl"
     task = create_task(
         "Build dashboard",
         description="Add task panels",
         owner="",
         blocked_by=["1", "setup"],
         tasks_dir=tmp_path,
+        events_path=events_path,
     )
 
     assert task.id == "1"
     assert task.status == "pending"
     assert task.blocked_by == ["1", "setup"]
 
-    claimed = claim_task(task.id, "penglei", tmp_path)
+    claimed = claim_task(task.id, "penglei", tmp_path, events_path)
     assert claimed.status == "in_progress"
     assert claimed.owner == "penglei"
 
-    completed = complete_task(task.id, tmp_path)
+    completed = complete_task(task.id, tmp_path, events_path)
     assert completed.status == "completed"
+
+    events = load_events(events_path)
+    assert [event.event_type for event in events] == [
+        "task_created",
+        "task_claimed",
+        "task_completed",
+    ]
+    assert events[0].payload["task_id"] == "1"
+
+
+def test_event_log_tail(tmp_path: Path) -> None:
+    events_path = tmp_path / "events.jsonl"
+    append_event("first", {"task_id": "1", "subject": "One"}, events_path=events_path)
+    append_event("second", {"task_id": "2", "subject": "Two"}, events_path=events_path)
+
+    events = tail_events(1, events_path)
+
+    assert len(events) == 1
+    assert events[0].event_type == "second"
 
 
 def test_load_skills_reads_frontmatter(tmp_path: Path) -> None:
@@ -94,7 +116,14 @@ def test_cli_lists_skills(capsys) -> None:
 
 
 def test_cli_task_lifecycle(tmp_path: Path, capsys) -> None:
-    base_args = ["tasks", "--tasks-dir", str(tmp_path)]
+    events_path = tmp_path / "events.jsonl"
+    base_args = [
+        "tasks",
+        "--tasks-dir",
+        str(tmp_path),
+        "--events-path",
+        str(events_path),
+    ]
 
     assert main([*base_args, "create", "Build CLI", "--owner", "penglei"]) == 0
     created = capsys.readouterr()
@@ -116,3 +145,14 @@ def test_cli_task_lifecycle(tmp_path: Path, capsys) -> None:
     listed = capsys.readouterr()
     assert "completed" in listed.out
     assert "alice" in listed.out
+
+    assert main(["events", "--events-path", str(events_path), "list"]) == 0
+    events_listed = capsys.readouterr()
+    assert "task_created" in events_listed.out
+    assert "task_claimed" in events_listed.out
+    assert "task_completed" in events_listed.out
+
+    assert main(["events", "--events-path", str(events_path), "tail", "--limit", "1"]) == 0
+    events_tail = capsys.readouterr()
+    assert "task_completed" in events_tail.out
+    assert "task_created" not in events_tail.out

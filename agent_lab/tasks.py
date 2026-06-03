@@ -8,7 +8,8 @@ from pathlib import Path
 import time
 from typing import Any
 
-from .paths import TASKS_DIR
+from .events import append_event
+from .paths import EVENTS_PATH, TASKS_DIR
 
 
 @dataclass(frozen=True)
@@ -123,6 +124,7 @@ def create_task(
     owner: str = "",
     blocked_by: list[str | int] | None = None,
     tasks_dir: Path = TASKS_DIR,
+    events_path: Path | None = EVENTS_PATH,
 ) -> TaskItem:
     """Create a new pending task and persist it as task_N.json."""
     task_id = _next_task_id(tasks_dir)
@@ -139,10 +141,27 @@ def create_task(
         "updated_at": now,
     }
     _write_task(data, tasks_dir)
-    return get_task(task_id, tasks_dir)
+    task = get_task(task_id, tasks_dir)
+    if events_path is not None:
+        append_event(
+            "task_created",
+            {
+                "task_id": task.id,
+                "subject": task.subject,
+                "owner": "" if task.owner == "-" else task.owner,
+                "blockedBy": task.blocked_by,
+            },
+            events_path=events_path,
+        )
+    return task
 
 
-def claim_task(task_id: str | int, owner: str, tasks_dir: Path = TASKS_DIR) -> TaskItem:
+def claim_task(
+    task_id: str | int,
+    owner: str,
+    tasks_dir: Path = TASKS_DIR,
+    events_path: Path | None = EVENTS_PATH,
+) -> TaskItem:
     """Assign a task to an owner and mark it in progress."""
     path = _task_path(task_id, tasks_dir)
     data = _load_task_data(path)
@@ -153,10 +172,21 @@ def claim_task(task_id: str | int, owner: str, tasks_dir: Path = TASKS_DIR) -> T
     data["status"] = "in_progress"
     data["updated_at"] = time.time()
     _write_task(data, tasks_dir)
-    return get_task(task_id, tasks_dir)
+    task = get_task(task_id, tasks_dir)
+    if events_path is not None:
+        append_event(
+            "task_claimed",
+            {"task_id": task.id, "subject": task.subject, "owner": task.owner},
+            events_path=events_path,
+        )
+    return task
 
 
-def complete_task(task_id: str | int, tasks_dir: Path = TASKS_DIR) -> TaskItem:
+def complete_task(
+    task_id: str | int,
+    tasks_dir: Path = TASKS_DIR,
+    events_path: Path | None = EVENTS_PATH,
+) -> TaskItem:
     """Mark a task completed."""
     path = _task_path(task_id, tasks_dir)
     data = _load_task_data(path)
@@ -166,4 +196,11 @@ def complete_task(task_id: str | int, tasks_dir: Path = TASKS_DIR) -> TaskItem:
     data["status"] = "completed"
     data["updated_at"] = time.time()
     _write_task(data, tasks_dir)
-    return get_task(task_id, tasks_dir)
+    task = get_task(task_id, tasks_dir)
+    if events_path is not None:
+        append_event(
+            "task_completed",
+            {"task_id": task.id, "subject": task.subject, "owner": task.owner},
+            events_path=events_path,
+        )
+    return task
