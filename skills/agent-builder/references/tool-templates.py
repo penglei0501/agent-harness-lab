@@ -22,10 +22,7 @@ BASH_TOOL = {
     "input_schema": {
         "type": "object",
         "properties": {
-            "command": {
-                "type": "string",
-                "description": "The shell command to execute"
-            }
+            "command": {"type": "string", "description": "The shell command to execute"}
         },
         "required": ["command"],
     },
@@ -37,13 +34,10 @@ READ_FILE_TOOL = {
     "input_schema": {
         "type": "object",
         "properties": {
-            "path": {
-                "type": "string",
-                "description": "Relative path to the file"
-            },
+            "path": {"type": "string", "description": "Relative path to the file"},
             "limit": {
                 "type": "integer",
-                "description": "Max lines to read (default: all)"
+                "description": "Max lines to read (default: all)",
             },
         },
         "required": ["path"],
@@ -56,14 +50,8 @@ WRITE_FILE_TOOL = {
     "input_schema": {
         "type": "object",
         "properties": {
-            "path": {
-                "type": "string",
-                "description": "Relative path for the file"
-            },
-            "content": {
-                "type": "string",
-                "description": "Content to write"
-            },
+            "path": {"type": "string", "description": "Relative path for the file"},
+            "content": {"type": "string", "description": "Content to write"},
         },
         "required": ["path", "content"],
     },
@@ -75,18 +63,12 @@ EDIT_FILE_TOOL = {
     "input_schema": {
         "type": "object",
         "properties": {
-            "path": {
-                "type": "string",
-                "description": "Relative path to the file"
-            },
+            "path": {"type": "string", "description": "Relative path to the file"},
             "old_text": {
                 "type": "string",
-                "description": "Exact text to find (must match precisely)"
+                "description": "Exact text to find (must match precisely)",
             },
-            "new_text": {
-                "type": "string",
-                "description": "Replacement text"
-            },
+            "new_text": {"type": "string", "description": "Replacement text"},
         },
         "required": ["path", "old_text", "new_text"],
     },
@@ -104,9 +86,18 @@ TODO_WRITE_TOOL = {
                 "items": {
                     "type": "object",
                     "properties": {
-                        "content": {"type": "string", "description": "Task description"},
-                        "status": {"type": "string", "enum": ["pending", "in_progress", "completed"]},
-                        "activeForm": {"type": "string", "description": "Present tense, e.g. 'Reading files'"},
+                        "content": {
+                            "type": "string",
+                            "description": "Task description",
+                        },
+                        "status": {
+                            "type": "string",
+                            "enum": ["pending", "in_progress", "completed"],
+                        },
+                        "activeForm": {
+                            "type": "string",
+                            "description": "Present tense, e.g. 'Reading files'",
+                        },
                     },
                     "required": ["content", "status", "activeForm"],
                 },
@@ -138,6 +129,7 @@ TASK_TOOL = {
 # TOOL IMPLEMENTATIONS
 # =============================================================================
 
+
 def safe_path(p: str) -> Path:
     """
     Security: Ensure path stays within workspace.
@@ -164,12 +156,7 @@ def run_bash(command: str) -> str:
 
     try:
         result = subprocess.run(
-            command,
-            shell=True,
-            cwd=WORKDIR,
-            capture_output=True,
-            text=True,
-            timeout=60
+            command, shell=True, cwd=WORKDIR, capture_output=True, text=True, timeout=60
         )
         output = (result.stdout + result.stderr).strip()
         return output[:50000] if output else "(no output)"
@@ -249,6 +236,7 @@ def run_edit_file(path: str, old_text: str, new_text: str) -> str:
 # =============================================================================
 # DISPATCHER PATTERN
 # =============================================================================
+
 
 def execute_tool(name: str, args: dict) -> str:
     """
