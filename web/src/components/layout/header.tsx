@@ -48,7 +48,7 @@ export function Header() {
     <header className="sticky top-0 z-50 border-b border-[var(--color-border)] bg-[var(--color-bg)]/80 backdrop-blur-sm">
       <div className="mx-auto flex h-14 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
         <Link href={`/${locale}`} className="text-lg font-bold">
-          Learn Claude Code
+          Agent Harness Lab
         </Link>
 
         {/* Desktop nav */}

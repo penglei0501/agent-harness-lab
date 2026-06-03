@@ -20,8 +20,8 @@ export async function generateMetadata({
   const { locale } = await params;
   const messages = metaMessages[locale] || metaMessages.en;
   return {
-    title: messages.meta?.title || "Learn Claude Code",
-    description: messages.meta?.description || "Build an AI coding agent from scratch, one concept at a time",
+    title: messages.meta?.title || "Agent Harness Lab",
+    description: messages.meta?.description || "Learn and visualize coding agent harness architecture",
   };
 }
 
