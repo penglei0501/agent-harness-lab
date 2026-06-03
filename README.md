@@ -220,9 +220,9 @@ Implemented capabilities:
 
 ## Project Origin
 
-本项目基于 `learn-claude-code` 的学习材料和示例代码进行整理、实验和扩展，目标是将 Claude Code 类编程 Agent 的 Harness 机制沉淀为一个可运行、可测试、可视化的个人学习项目。
+本项目基于 [shareAI-lab/learn-claude-code](https://github.com/shareAI-lab/learn-claude-code) 的学习材料和示例代码进行整理、实验和扩展，目标是将 Claude Code 类编程 Agent 的 Harness 机制沉淀为一个可运行、可测试、可视化的个人学习项目。
 
-原项目保留为本地 `upstream`，本仓库作为个人学习与改进版本维护。
+原项目保留为本地 upstream，本仓库作为个人学习与改进版本维护。
 
 ## License
 
