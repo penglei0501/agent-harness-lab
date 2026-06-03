@@ -53,6 +53,7 @@ Harness = Tools
 ```text
 .
 ├── agents/                  # 12 个递进式 Agent Harness 示例 + 综合实现
+├── agent_lab/               # 个人扩展的 Agent Harness Lab CLI
 ├── docs/                    # 中英文课程内容源
 ├── skills/                  # Skill 按需加载示例
 ├── web/                     # Next.js 可视化学习站
@@ -118,7 +119,20 @@ messages[] continues until the model stops using tools
 
 ## Getting Started
 
-### 1. Python Agent Examples
+### 1. Agent Lab CLI
+
+This project includes a lightweight CLI for inspecting local harness assets:
+
+```bash
+python -m agent_lab --help
+python -m agent_lab tasks list
+python -m agent_lab skills list
+python -m agent_lab docs list
+```
+
+It provides a first layer of project-specific tooling over the task board, skill files, and course content.
+
+### 2. Python Agent Examples
 
 Create a virtual environment and install dependencies:
 
@@ -141,7 +155,7 @@ python agents/s01_agent_loop.py
 python agents/s_full.py
 ```
 
-### 2. Web Visualization
+### 3. Web Visualization
 
 ```bash
 cd web
@@ -157,7 +171,7 @@ http://localhost:3000
 
 `npm run dev` automatically runs `npm run extract` first, which extracts Markdown course content into generated web data.
 
-### 3. Tests
+### 4. Tests
 
 Run Python tests:
 
