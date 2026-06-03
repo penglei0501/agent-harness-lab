@@ -25,6 +25,7 @@ Harness = Tools
 - 实现最小 agent loop：支持 `tool_use -> tool_result -> continue` 的多轮工具调用流程。
 - 设计工具注册与分发机制：将 shell、文件读写、编辑、任务管理等能力抽象为可组合工具。
 - 实现 Todo 和持久化任务系统：支持多步任务规划、任务依赖、状态流转和长期目标管理。
+- 新增 `agent_lab` CLI：支持本地任务创建、查看、认领、完成，以及 skills/docs 资产索引。
 - 实现 Subagent 上下文隔离：将探索性任务放入独立 `messages[]`，减少主上下文污染。
 - 实现 Skill 按需加载：只在需要时加载领域知识，降低 system prompt 占用。
 - 实现上下文压缩策略：通过微压缩、自动压缩和手动压缩支撑长会话。
@@ -125,12 +126,16 @@ This project includes a lightweight CLI for inspecting local harness assets:
 
 ```bash
 python -m agent_lab --help
+python -m agent_lab tasks create "Build Web Dashboard" --description "Show tasks and skills"
 python -m agent_lab tasks list
+python -m agent_lab tasks show 6
+python -m agent_lab tasks claim 6 --owner penglei
+python -m agent_lab tasks complete 6
 python -m agent_lab skills list
 python -m agent_lab docs list
 ```
 
-It provides a first layer of project-specific tooling over the task board, skill files, and course content.
+It provides a project-specific tooling layer over the task board, skill files, and course content. Task commands persist local state in `.tasks/task_N.json`, which can later feed a Web dashboard or runtime event log.
 
 ### 2. Python Agent Examples
 
@@ -201,6 +206,7 @@ Agent Harness Lab
 ```text
 - 实现模型驱动的 agent loop，支持 tool_use 到 tool_result 的多轮执行机制。
 - 设计可扩展工具分发层，将 shell、文件操作、任务管理、技能加载等能力抽象为可组合工具。
+- 抽象 `agent_lab` CLI，支持任务创建、查看、认领、完成和 JSON 文件持久化。
 - 实现文件持久化 DAG 任务系统和 JSONL mailbox，支持多 Agent 协作、任务认领和协议握手。
 - 使用 Next.js 构建可视化学习站，展示 Agent Harness 的架构演进、执行流程和课程内容。
 - 配置 pytest 与 GitHub Actions，保障 Python 示例和 Web 构建稳定性。

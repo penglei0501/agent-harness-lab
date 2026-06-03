@@ -6,7 +6,7 @@ from pathlib import Path
 from agent_lab.cli import main
 from agent_lab.docs import load_docs
 from agent_lab.skills import load_skills
-from agent_lab.tasks import load_tasks
+from agent_lab.tasks import claim_task, complete_task, create_task, load_tasks
 
 
 def test_load_tasks_from_directory(tmp_path: Path) -> None:
@@ -28,6 +28,27 @@ def test_load_tasks_from_directory(tmp_path: Path) -> None:
     assert tasks[0].id == "2"
     assert tasks[0].subject == "Build CLI"
     assert tasks[0].blocked_by == ["1"]
+
+
+def test_create_claim_and_complete_task(tmp_path: Path) -> None:
+    task = create_task(
+        "Build dashboard",
+        description="Add task panels",
+        owner="",
+        blocked_by=["1", "setup"],
+        tasks_dir=tmp_path,
+    )
+
+    assert task.id == "1"
+    assert task.status == "pending"
+    assert task.blocked_by == ["1", "setup"]
+
+    claimed = claim_task(task.id, "penglei", tmp_path)
+    assert claimed.status == "in_progress"
+    assert claimed.owner == "penglei"
+
+    completed = complete_task(task.id, tmp_path)
+    assert completed.status == "completed"
 
 
 def test_load_skills_reads_frontmatter(tmp_path: Path) -> None:
@@ -70,3 +91,28 @@ def test_cli_lists_skills(capsys) -> None:
     assert exit_code == 0
     assert "agent-builder" in captured.out
     assert "code-review" in captured.out
+
+
+def test_cli_task_lifecycle(tmp_path: Path, capsys) -> None:
+    base_args = ["tasks", "--tasks-dir", str(tmp_path)]
+
+    assert main([*base_args, "create", "Build CLI", "--owner", "penglei"]) == 0
+    created = capsys.readouterr()
+    assert "Created task 1" in created.out
+
+    assert main([*base_args, "show", "1"]) == 0
+    shown = capsys.readouterr()
+    assert "Build CLI" in shown.out
+
+    assert main([*base_args, "claim", "1", "--owner", "alice"]) == 0
+    claimed = capsys.readouterr()
+    assert "Claimed task 1 for alice" in claimed.out
+
+    assert main([*base_args, "complete", "1"]) == 0
+    completed = capsys.readouterr()
+    assert "Completed task 1" in completed.out
+
+    assert main([*base_args, "list"]) == 0
+    listed = capsys.readouterr()
+    assert "completed" in listed.out
+    assert "alice" in listed.out

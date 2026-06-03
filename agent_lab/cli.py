@@ -9,7 +9,7 @@ from pathlib import Path
 from .docs import load_docs
 from .paths import REPO_ROOT
 from .skills import load_skills
-from .tasks import load_tasks
+from .tasks import claim_task, complete_task, create_task, get_task, load_tasks
 
 
 def _rel(path: Path) -> str:
@@ -35,8 +35,70 @@ def _print_table(headers: Sequence[str], rows: Sequence[Sequence[str]]) -> None:
         print("  ".join(str(value).ljust(widths[index]) for index, value in enumerate(row)))
 
 
-def list_tasks(_: argparse.Namespace) -> int:
-    tasks = load_tasks()
+def _parse_blocked_by(value: str) -> list[str]:
+    if not value:
+        return []
+    return [item.strip() for item in value.split(",") if item.strip()]
+
+
+def _print_task_detail(task) -> None:
+    rows = [
+        ["ID", task.id],
+        ["Subject", task.subject],
+        ["Status", task.status],
+        ["Owner", task.owner],
+        ["BlockedBy", ",".join(task.blocked_by) if task.blocked_by else "-"],
+        ["Path", _rel(task.path)],
+    ]
+    if task.description:
+        rows.insert(2, ["Description", task.description])
+    _print_table(["Field", "Value"], rows)
+
+
+def create_task_command(args: argparse.Namespace) -> int:
+    task = create_task(
+        args.subject,
+        description=args.description,
+        owner=args.owner,
+        blocked_by=_parse_blocked_by(args.blocked_by),
+        tasks_dir=args.tasks_dir,
+    )
+    print(f"Created task {task.id}: {task.subject}")
+    return 0
+
+
+def show_task_command(args: argparse.Namespace) -> int:
+    try:
+        task = get_task(args.task_id, args.tasks_dir)
+    except FileNotFoundError as exc:
+        print(str(exc))
+        return 1
+    _print_task_detail(task)
+    return 0
+
+
+def claim_task_command(args: argparse.Namespace) -> int:
+    try:
+        task = claim_task(args.task_id, args.owner, args.tasks_dir)
+    except FileNotFoundError as exc:
+        print(str(exc))
+        return 1
+    print(f"Claimed task {task.id} for {task.owner}")
+    return 0
+
+
+def complete_task_command(args: argparse.Namespace) -> int:
+    try:
+        task = complete_task(args.task_id, args.tasks_dir)
+    except FileNotFoundError as exc:
+        print(str(exc))
+        return 1
+    print(f"Completed task {task.id}: {task.subject}")
+    return 0
+
+
+def list_tasks_command(args: argparse.Namespace) -> int:
+    tasks = load_tasks(args.tasks_dir)
     rows = [
         [
             task.id,
@@ -72,10 +134,40 @@ def build_parser() -> argparse.ArgumentParser:
     )
     subparsers = parser.add_subparsers(dest="resource", required=True)
 
-    tasks_parser = subparsers.add_parser("tasks", help="Inspect local task board")
+    tasks_parser = subparsers.add_parser("tasks", help="Manage local task board")
+    tasks_parser.add_argument(
+        "--tasks-dir",
+        type=Path,
+        default=None,
+        help=argparse.SUPPRESS,
+    )
     tasks_sub = tasks_parser.add_subparsers(dest="action", required=True)
     tasks_list = tasks_sub.add_parser("list", help="List .tasks/*.json")
-    tasks_list.set_defaults(func=list_tasks)
+    tasks_list.set_defaults(func=list_tasks_command)
+
+    tasks_create = tasks_sub.add_parser("create", help="Create a new pending task")
+    tasks_create.add_argument("subject", help="Task subject")
+    tasks_create.add_argument("--description", default="", help="Task description")
+    tasks_create.add_argument("--owner", default="", help="Initial task owner")
+    tasks_create.add_argument(
+        "--blocked-by",
+        default="",
+        help="Comma-separated dependency task IDs, for example: 1,2",
+    )
+    tasks_create.set_defaults(func=create_task_command)
+
+    tasks_show = tasks_sub.add_parser("show", help="Show one task")
+    tasks_show.add_argument("task_id", help="Task ID")
+    tasks_show.set_defaults(func=show_task_command)
+
+    tasks_claim = tasks_sub.add_parser("claim", help="Claim a task for an owner")
+    tasks_claim.add_argument("task_id", help="Task ID")
+    tasks_claim.add_argument("--owner", required=True, help="Owner name")
+    tasks_claim.set_defaults(func=claim_task_command)
+
+    tasks_complete = tasks_sub.add_parser("complete", help="Mark a task completed")
+    tasks_complete.add_argument("task_id", help="Task ID")
+    tasks_complete.set_defaults(func=complete_task_command)
 
     skills_parser = subparsers.add_parser("skills", help="Inspect local skills")
     skills_sub = skills_parser.add_subparsers(dest="action", required=True)
@@ -93,4 +185,8 @@ def build_parser() -> argparse.ArgumentParser:
 def main(argv: Sequence[str] | None = None) -> int:
     parser = build_parser()
     args = parser.parse_args(argv)
+    if getattr(args, "tasks_dir", None) is None:
+        from .paths import TASKS_DIR
+
+        args.tasks_dir = TASKS_DIR
     return args.func(args)
