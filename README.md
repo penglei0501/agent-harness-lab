@@ -53,7 +53,7 @@ Harness = Tools
 ```text
 .
 ├── agents/                  # 12 个递进式 Agent Harness 示例 + 综合实现
-├── docs/                    # 中英日多语言课程文档
+├── docs/                    # 中英文课程内容源
 ├── skills/                  # Skill 按需加载示例
 ├── web/                     # Next.js 可视化学习站
 ├── tests/                   # Agent 脚本 smoke tests
