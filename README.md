@@ -192,16 +192,14 @@ cd web
 npm run build
 ```
 
-## Resume Description
-
-可以在简历中这样描述：
+## Project Summary
 
 ```text
 Agent Harness Lab
 基于 Python + Next.js 构建的编程 Agent Harness 学习与可视化系统，复现 Claude Code 类 Agent 的核心运行机制，包括工具调用循环、任务规划、Subagent 隔离、Skill 按需加载、上下文压缩、后台任务、多 Agent 协作和 Git worktree 隔离执行。
 ```
 
-项目亮点可以写成：
+Implemented capabilities:
 
 ```text
 - 实现模型驱动的 agent loop，支持 tool_use 到 tool_result 的多轮执行机制。
