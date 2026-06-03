@@ -35,6 +35,50 @@ export interface VersionIndex {
   diffs: VersionDiff[];
 }
 
+export interface DashboardTask {
+  id: string;
+  subject: string;
+  status: string;
+  owner: string;
+  blockedBy: string[];
+}
+
+export interface DashboardSkill {
+  name: string;
+  description: string;
+  path: string;
+}
+
+export interface DashboardEvent {
+  timestamp: string;
+  type: string;
+  taskId: string;
+  owner: string;
+  subject: string;
+}
+
+export interface DashboardData {
+  tasks: {
+    total: number;
+    pending: number;
+    in_progress: number;
+    completed: number;
+    items: DashboardTask[];
+  };
+  skills: {
+    total: number;
+    items: DashboardSkill[];
+  };
+  docs: {
+    total: number;
+    byLocale: Record<string, number>;
+  };
+  events: {
+    total: number;
+    recent: DashboardEvent[];
+  };
+}
+
 export type SimStepType =
   | "user_message"
   | "assistant_text"

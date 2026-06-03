@@ -5,6 +5,10 @@ import type {
   VersionDiff,
   DocContent,
   VersionIndex,
+  DashboardData,
+  DashboardEvent,
+  DashboardSkill,
+  DashboardTask,
 } from "../src/types/agent-data";
 import { VERSION_META, VERSION_ORDER, LEARNING_PATH } from "../src/lib/constants";
 
@@ -13,6 +17,9 @@ const WEB_DIR = path.resolve(__dirname, "..");
 const REPO_ROOT = path.resolve(WEB_DIR, "..");
 const AGENTS_DIR = path.join(REPO_ROOT, "agents");
 const DOCS_DIR = path.join(REPO_ROOT, "docs");
+const TASKS_DIR = path.join(REPO_ROOT, ".tasks");
+const SKILLS_DIR = path.join(REPO_ROOT, "skills");
+const EVENTS_PATH = path.join(REPO_ROOT, ".agent_lab", "events.jsonl");
 const OUT_DIR = path.join(WEB_DIR, "src", "data", "generated");
 
 // Map python filenames to version IDs
@@ -103,6 +110,157 @@ function countLoc(lines: string[]): number {
 function extractDocVersion(filename: string): string | null {
   const m = filename.match(/^(s\d+[a-c]?)-/);
   return m ? m[1] : null;
+}
+
+function readJsonFile(filePath: string): any | null {
+  try {
+    return JSON.parse(fs.readFileSync(filePath, "utf-8"));
+  } catch {
+    return null;
+  }
+}
+
+function repoRelative(filePath: string): string {
+  return path.relative(REPO_ROOT, filePath).replaceAll(path.sep, "/");
+}
+
+function extractSkillMeta(content: string): { name?: string; description?: string } {
+  if (!content.startsWith("---")) return {};
+  const end = content.indexOf("\n---", 3);
+  if (end === -1) return {};
+
+  const meta = content.slice(3, end).trim().split(/\r?\n/);
+  const result: { name?: string; description?: string } = {};
+  let currentKey: "name" | "description" | null = null;
+  let currentLines: string[] = [];
+
+  function flushBlock() {
+    if (currentKey === "description") {
+      result.description = currentLines.join(" ").trim();
+    }
+    currentKey = null;
+    currentLines = [];
+  }
+
+  for (const line of meta) {
+    if (/^\s+/.test(line) && currentKey === "description") {
+      currentLines.push(line.trim());
+      continue;
+    }
+    flushBlock();
+
+    const [rawKey, ...rest] = line.split(":");
+    if (!rawKey || rest.length === 0) continue;
+    const key = rawKey.trim();
+    const value = rest.join(":").trim();
+    if (key === "name") {
+      result.name = value;
+    } else if (key === "description") {
+      if (value === "|") {
+        currentKey = "description";
+      } else {
+        result.description = value;
+      }
+    }
+  }
+  flushBlock();
+  return result;
+}
+
+function buildDashboardData(docs: DocContent[]): DashboardData {
+  const taskItems: DashboardTask[] = [];
+  if (fs.existsSync(TASKS_DIR)) {
+    const taskFiles = fs
+      .readdirSync(TASKS_DIR)
+      .filter((file) => file.endsWith(".json"))
+      .sort((a, b) => a.localeCompare(b, undefined, { numeric: true }));
+
+    for (const file of taskFiles) {
+      const data = readJsonFile(path.join(TASKS_DIR, file));
+      if (!data || typeof data !== "object") continue;
+      taskItems.push({
+        id: String(data.id ?? path.basename(file, ".json")),
+        subject: String(data.subject ?? data.title ?? "(untitled)"),
+        status: String(data.status ?? "unknown"),
+        owner: String(data.owner || "-"),
+        blockedBy: Array.isArray(data.blockedBy) ? data.blockedBy.map(String) : [],
+      });
+    }
+  }
+
+  const statusCount = (status: string) =>
+    taskItems.filter((task) => task.status === status).length;
+
+  const skillItems: DashboardSkill[] = [];
+  if (fs.existsSync(SKILLS_DIR)) {
+    const skillDirs = fs
+      .readdirSync(SKILLS_DIR)
+      .map((dir) => path.join(SKILLS_DIR, dir, "SKILL.md"))
+      .filter((filePath) => fs.existsSync(filePath))
+      .sort();
+
+    for (const filePath of skillDirs) {
+      const content = fs.readFileSync(filePath, "utf-8");
+      const meta = extractSkillMeta(content);
+      skillItems.push({
+        name: meta.name ?? path.basename(path.dirname(filePath)),
+        description: meta.description ?? "(no description)",
+        path: repoRelative(filePath),
+      });
+    }
+  }
+
+  const docsByLocale: Record<string, number> = {};
+  for (const doc of docs) {
+    docsByLocale[doc.locale] = (docsByLocale[doc.locale] ?? 0) + 1;
+  }
+
+  const eventItems: DashboardEvent[] = [];
+  if (fs.existsSync(EVENTS_PATH)) {
+    const lines = fs.readFileSync(EVENTS_PATH, "utf-8").split(/\r?\n/);
+    for (const line of lines) {
+      if (!line.trim()) continue;
+      const data = readJsonLine(line);
+      if (!data) continue;
+      eventItems.push({
+        timestamp: String(data.timestamp ?? ""),
+        type: String(data.type ?? "unknown"),
+        taskId: String(data.task_id ?? "-"),
+        owner: String(data.owner || "-"),
+        subject: String(data.subject ?? "-"),
+      });
+    }
+  }
+
+  return {
+    tasks: {
+      total: taskItems.length,
+      pending: statusCount("pending"),
+      in_progress: statusCount("in_progress"),
+      completed: statusCount("completed"),
+      items: taskItems,
+    },
+    skills: {
+      total: skillItems.length,
+      items: skillItems,
+    },
+    docs: {
+      total: docs.length,
+      byLocale: docsByLocale,
+    },
+    events: {
+      total: eventItems.length,
+      recent: eventItems.slice(-10).reverse(),
+    },
+  };
+}
+
+function readJsonLine(line: string): any | null {
+  try {
+    return JSON.parse(line);
+  } catch {
+    return null;
+  }
 }
 
 // Main extraction
@@ -256,11 +414,19 @@ function main() {
   fs.writeFileSync(docsPath, JSON.stringify(docs, null, 2));
   console.log(`  Wrote ${docsPath}`);
 
+  const dashboard = buildDashboardData(docs);
+  const dashboardPath = path.join(OUT_DIR, "dashboard.json");
+  fs.writeFileSync(dashboardPath, JSON.stringify(dashboard, null, 2));
+  console.log(`  Wrote ${dashboardPath}`);
+
   // Summary
   console.log("\nExtraction complete:");
   console.log(`  ${versions.length} versions`);
   console.log(`  ${diffs.length} diffs`);
   console.log(`  ${docs.length} docs`);
+  console.log(`  ${dashboard.tasks.total} tasks`);
+  console.log(`  ${dashboard.skills.total} skills`);
+  console.log(`  ${dashboard.events.total} events`);
   for (const v of versions) {
     console.log(
       `    ${v.id}: ${v.loc} LOC, ${v.tools.length} tools, ${v.classes.length} classes, ${v.functions.length} functions`

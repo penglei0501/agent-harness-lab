@@ -8,6 +8,7 @@ import { useState, useEffect } from "react";
 import { cn } from "@/lib/utils";
 
 const NAV_ITEMS = [
+  { key: "dashboard", href: "/dashboard" },
   { key: "timeline", href: "/timeline" },
   { key: "compare", href: "/compare" },
   { key: "layers", href: "/layers" },
@@ -93,7 +94,7 @@ export function Header() {
           </button>
 
           <a
-            href="https://github.com/shareAI-lab/learn-claude-code"
+            href="https://github.com/penglei0501/agent-harness-lab"
             target="_blank"
             rel="noopener"
             className="text-zinc-500 hover:text-zinc-700 dark:text-zinc-400 dark:hover:text-white"
@@ -149,7 +150,7 @@ export function Header() {
                 {mounted ? (dark ? <Sun size={18} /> : <Moon size={18} />) : <span className="w-[18px] h-[18px] inline-block" />}
               </button>
               <a
-                href="https://github.com/shareAI-lab/learn-claude-code"
+                href="https://github.com/penglei0501/agent-harness-lab"
                 target="_blank"
                 rel="noopener"
                 className="flex min-h-[44px] min-w-[44px] items-center justify-center text-zinc-500 hover:text-zinc-700 dark:text-zinc-400 dark:hover:text-white"

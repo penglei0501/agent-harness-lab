@@ -1,0 +1,83 @@
+{
+  "tasks": {
+    "total": 5,
+    "pending": 3,
+    "in_progress": 0,
+    "completed": 2,
+    "items": [
+      {
+        "id": "1",
+        "subject": "调研机器学习框架",
+        "status": "completed",
+        "owner": "alice",
+        "blockedBy": []
+      },
+      {
+        "id": "2",
+        "subject": "搭建数据处理流水线",
+        "status": "completed",
+        "owner": "bob",
+        "blockedBy": []
+      },
+      {
+        "id": "3",
+        "subject": "训练和评估模型",
+        "status": "pending",
+        "owner": "-",
+        "blockedBy": [
+          "2"
+        ]
+      },
+      {
+        "id": "4",
+        "subject": "Backend Authentication",
+        "status": "pending",
+        "owner": "-",
+        "blockedBy": []
+      },
+      {
+        "id": "5",
+        "subject": "Frontend Login Page",
+        "status": "pending",
+        "owner": "-",
+        "blockedBy": []
+      }
+    ]
+  },
+  "skills": {
+    "total": 4,
+    "items": [
+      {
+        "name": "agent-builder",
+        "description": "Design and build AI agents for any domain. Use when users: (1) ask to \"create an agent\", \"build an assistant\", or \"design an AI system\" (2) want to understand agent architecture, agentic patterns, or autonomous AI (3) need help with capabilities, subagents, planning, or skill mechanisms (4) ask about Claude Code, Cursor, or similar agent internals (5) want to build agents for business, research, creative, or operational tasks Keywords: agent, assistant, autonomous, workflow, tool use, multi-step, orchestration",
+        "path": "skills/agent-builder/SKILL.md"
+      },
+      {
+        "name": "code-review",
+        "description": "Perform thorough code reviews with security, performance, and maintainability analysis. Use when user asks to review code, check for bugs, or audit a codebase.",
+        "path": "skills/code-review/SKILL.md"
+      },
+      {
+        "name": "mcp-builder",
+        "description": "Build MCP (Model Context Protocol) servers that give Claude new capabilities. Use when user wants to create an MCP server, add tools to Claude, or integrate external services.",
+        "path": "skills/mcp-builder/SKILL.md"
+      },
+      {
+        "name": "pdf",
+        "description": "Process PDF files - extract text, create PDFs, merge documents. Use when user asks to read PDF, create PDF, or work with PDF files.",
+        "path": "skills/pdf/SKILL.md"
+      }
+    ]
+  },
+  "docs": {
+    "total": 24,
+    "byLocale": {
+      "en": 12,
+      "zh": 12
+    }
+  },
+  "events": {
+    "total": 0,
+    "recent": []
+  }
+}
