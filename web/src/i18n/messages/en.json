@@ -28,7 +28,7 @@
   },
   "papers": {
     "title": "Paper Reading Assistant",
-    "subtitle": "Turn local paper PDFs, Markdown files, or text files into structured Markdown notes for group meeting preparation.",
+    "subtitle": "Turn local paper PDFs, Markdown files, or text files into structured research reading reports.",
     "input": "Add Papers",
     "input_desc": "Place paper files in the local input folder, or pass a file path directly in the command.",
     "run": "Generate Notes",

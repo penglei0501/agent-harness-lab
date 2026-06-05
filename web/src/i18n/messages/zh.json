@@ -28,7 +28,7 @@
   },
   "papers": {
     "title": "论文阅读助手",
-    "subtitle": "把本地论文 PDF、Markdown 或 text 文件转换为组会汇报用的结构化 Markdown 笔记。",
+    "subtitle": "把本地论文 PDF、Markdown 或 text 文件转换为结构化科研阅读报告。",
     "input": "放入论文",
     "input_desc": "把论文文件放到本地输入目录，或在命令中直接传入文件路径。",
     "run": "生成笔记",

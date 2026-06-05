@@ -55,7 +55,7 @@
     ]
   },
   "skills": {
-    "total": 5,
+    "total": 8,
     "items": [
       {
         "name": "agent-builder",
@@ -68,19 +68,34 @@
         "path": "skills/code-review/SKILL.md"
       },
       {
+        "name": "experiment-analysis",
+        "description": "Analyze academic paper experiments, datasets, baselines, metrics, ablations, results, and validity.",
+        "path": "skills/experiment-analysis/SKILL.md"
+      },
+      {
+        "name": "method-analysis",
+        "description": "Analyze academic paper methods, model structure, algorithm flow, system design, and assumptions.",
+        "path": "skills/method-analysis/SKILL.md"
+      },
+      {
         "name": "mcp-builder",
         "description": "Build MCP (Model Context Protocol) servers that give Claude new capabilities. Use when user wants to create an MCP server, add tools to Claude, or integrate external services.",
         "path": "skills/mcp-builder/SKILL.md"
       },
       {
         "name": "paper-reading",
-        "description": "Read academic papers for graduate research workflows and produce structured notes for group meetings.",
+        "description": "Read academic papers for graduate research workflows and produce structured research notes.",
         "path": "skills/paper-reading/SKILL.md"
       },
       {
         "name": "pdf",
         "description": "Process PDF files - extract text, create PDFs, merge documents. Use when user asks to read PDF, create PDF, or work with PDF files.",
         "path": "skills/pdf/SKILL.md"
+      },
+      {
+        "name": "research-report-writing",
+        "description": "Write structured research reading reports with background, problem, method, experiments, limitations, and follow-up ideas.",
+        "path": "skills/research-report-writing/SKILL.md"
       }
     ]
   },

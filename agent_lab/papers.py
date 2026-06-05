@@ -164,13 +164,18 @@ def render_note(title: str, source_path: Path, text: str, sections: dict[str, st
 ## 7. Limitations
 {sections["limitations"]}
 
-## 8. Group Meeting Discussion Questions
+## 8. Research Discussion Questions
 - What is the paper's strongest technical idea?
 - Which assumption is most likely to fail in another dataset or setting?
 - What experiment would you add if you were extending this work?
 
-## 9. One-Minute Summary
-This paper studies `{title}`. Use the extracted sections above to refine a short spoken summary before group meeting.
+## 9. Research Follow-up Ideas
+- What adjacent problem could this method be applied to?
+- Which component could be replaced or simplified?
+- What data, metric, or ablation would make the claim more convincing?
+
+## 10. Concise Research Summary
+This paper studies `{title}`. Use the extracted sections above to refine a concise research summary with evidence, limitations, and possible follow-up work.
 """
 
 

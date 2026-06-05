@@ -30,8 +30,8 @@ Harness = Tools
 - 新增 Web Dashboard：聚合展示任务状态、技能索引、文档统计和事件日志概览。
 - Dashboard 支持任务依赖图和事件时间线，展示任务阻塞关系与运行轨迹。
 - 新增 `demo seed` 命令：一键生成 Dashboard 演示任务、依赖和事件数据。
-- 新增科研场景扩展：`papers` CLI 可读取论文 PDF / Markdown / text，生成组会汇报用 Markdown 笔记。
-- 新增 `paper-reading` Skill：沉淀论文阅读、方法提取、实验分析和组会讨论问题生成流程。
+- 新增科研场景扩展：`papers` CLI 可读取论文 PDF / Markdown / text，生成结构化科研阅读报告。
+- 新增 Research Skill Pack：沉淀论文阅读、方法分析、实验分析和科研报告写作流程。
 - 实现 Subagent 上下文隔离：将探索性任务放入独立 `messages[]`，减少主上下文污染。
 - 实现 Skill 按需加载：只在需要时加载领域知识，降低 system prompt 占用。
 - 实现上下文压缩策略：通过微压缩、自动压缩和手动压缩支撑长会话。
@@ -152,7 +152,7 @@ It provides a project-specific tooling layer over the task board, event log, ski
 
 ### 2. Research Scenario Extension: Paper Reading Assistant
 
-This project also includes a graduate research workflow extension. Students can provide a paper PDF, Markdown file, text file, or a folder of papers, and the CLI generates structured Markdown reading notes for group meeting preparation:
+This project also includes a graduate research workflow extension. Students can provide a paper PDF, Markdown file, text file, or a folder of papers, and the CLI generates structured Markdown research reading reports:
 
 ```bash
 mkdir -p papers/input papers/output
@@ -171,11 +171,21 @@ Method
 Experiments
 Results and Conclusion
 Limitations
-Group Meeting Discussion Questions
-One-Minute Summary
+Research Discussion Questions
+Research Follow-up Ideas
+Concise Research Summary
 ```
 
 The module records `paper_read` and `paper_note_generated` events in `.agent_lab/events.jsonl`, so paper reading activity can appear in the existing Dashboard timeline. PDF support uses local text extraction when available (`pdftotext`, `pypdf`, or PyMuPDF); Markdown and plain text work without extra dependencies.
+
+Research Skill Pack:
+
+```text
+paper-reading             Overall structured paper reading workflow
+method-analysis           Method, model, algorithm, system, and assumption analysis
+experiment-analysis       Dataset, baseline, metric, ablation, and result analysis
+research-report-writing   Structured research report generation
+```
 
 ### 3. Python Agent Examples
 
@@ -265,8 +275,8 @@ Implemented capabilities:
 - 构建 Web Dashboard，聚合展示 tasks、skills、docs 和 events 的本地运行状态。
 - Dashboard 支持任务依赖图和事件时间线，用于观察任务阻塞关系与运行轨迹。
 - 新增 demo seed 命令，一键生成任务、依赖和事件数据，支持 Dashboard 快速演示。
-- 新增论文阅读助手模块，支持将 PDF / Markdown / text 论文转换为结构化组会阅读笔记。
-- 新增 paper-reading Skill，将论文阅读策略沉淀为 Agent 可复用的领域工作流。
+- 新增论文阅读助手模块，支持将 PDF / Markdown / text 论文转换为结构化科研阅读报告。
+- 新增 Research Skill Pack，将论文阅读、方法分析、实验分析和科研报告写作沉淀为 Agent 可复用的领域工作流。
 - 实现文件持久化 DAG 任务系统和 JSONL mailbox，支持多 Agent 协作、任务认领和协议握手。
 - 使用 Next.js 构建可视化学习站，展示 Agent Harness 的架构演进、执行流程和课程内容。
 - 配置 pytest 与 GitHub Actions，保障 Python 示例和 Web 构建稳定性。

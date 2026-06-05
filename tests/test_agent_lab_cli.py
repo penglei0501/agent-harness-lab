@@ -220,7 +220,8 @@ The harness improves traceability for student research workflows.
     assert note.note_path.exists()
     note_text = note.note_path.read_text(encoding="utf-8")
     assert "## 2. Research Background" in note_text
-    assert "## 8. Group Meeting Discussion Questions" in note_text
+    assert "## 8. Research Discussion Questions" in note_text
+    assert "## 9. Research Follow-up Ideas" in note_text
     assert "task logs, event streams" in note_text
 
     events = load_events(events_path)
