@@ -228,6 +228,8 @@ http://localhost:3000/en/papers
 http://localhost:3000/zh/papers
 ```
 
+The paper assistant page supports local drag-and-drop upload in development/server mode. Uploaded files are saved to `papers/input/`, processed by `agent_lab papers read`, and returned to the page as a Markdown report. Generated notes are saved in `papers/output/`.
+
 `npm run dev` automatically runs `npm run extract` first, which extracts Markdown course content and dashboard data into `web/src/data/generated/`.
 
 ### 5. Tests

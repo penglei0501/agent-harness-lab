@@ -1,6 +1,7 @@
 import { FileText, FolderInput, ListChecks, Terminal } from "lucide-react";
 import { Card, CardHeader, CardTitle } from "@/components/ui/card";
 import { EventTimeline } from "@/components/dashboard/event-timeline";
+import { PaperUpload } from "@/components/papers/paper-upload";
 import { getTranslations } from "@/lib/i18n-server";
 import type { DashboardData, DashboardPaperNote } from "@/types/agent-data";
 import dashboardJson from "@/data/generated/dashboard.json";
@@ -45,6 +46,20 @@ export default async function PapersPage({
       <div className="mb-8">
         <h1 className="text-3xl font-bold">{t("title")}</h1>
         <p className="mt-2 max-w-3xl text-[var(--color-text-secondary)]">{t("subtitle")}</p>
+      </div>
+
+      <div className="mb-6">
+        <PaperUpload
+          labels={{
+            title: t("upload_title"),
+            description: t("upload_desc"),
+            choose: t("upload_choose"),
+            uploading: t("uploading"),
+            success: t("upload_success"),
+            error: t("upload_error"),
+            markdown: t("generated_markdown"),
+          }}
+        />
       </div>
 
       <div className="grid gap-4 lg:grid-cols-3">

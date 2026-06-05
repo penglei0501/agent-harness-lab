@@ -37,7 +37,14 @@
     "notes": "已生成笔记",
     "events": "论文事件",
     "empty_notes": "还没有论文笔记。运行 papers read 后再执行 npm run extract。",
-    "empty_events": "还没有论文阅读事件。"
+    "empty_events": "还没有论文阅读事件。",
+    "upload_title": "拖入论文文件生成报告",
+    "upload_desc": "支持 PDF、Markdown 和 text 文件。文件会保存在本地 papers/input，并生成 Markdown 笔记。",
+    "upload_choose": "选择文件",
+    "uploading": "正在上传并生成论文报告...",
+    "upload_success": "报告已生成",
+    "upload_error": "生成失败",
+    "generated_markdown": "生成的 Markdown 报告"
   },
   "layers": {
     "title": "架构层次",

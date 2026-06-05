@@ -37,7 +37,14 @@
     "notes": "Generated Notes",
     "events": "Paper Events",
     "empty_notes": "No paper notes yet. Run papers read and then npm run extract.",
-    "empty_events": "No paper reading events yet."
+    "empty_events": "No paper reading events yet.",
+    "upload_title": "Drop a paper file to generate a report",
+    "upload_desc": "Supports PDF, Markdown, and text files. Files are saved to local papers/input and converted into Markdown notes.",
+    "upload_choose": "Choose File",
+    "uploading": "Uploading and generating the paper report...",
+    "upload_success": "Report generated",
+    "upload_error": "Generation failed",
+    "generated_markdown": "Generated Markdown Report"
   },
   "layers": {
     "title": "Architectural Layers",
