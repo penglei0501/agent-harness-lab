@@ -1,0 +1,206 @@
+# Agent Harness Lab
+
+[English](README.md) | 简体中文
+
+Agent Harness Lab 是一个基于 Python + Next.js 的 Agent Harness 学习、实验与可视化项目。它通过 12 个递进式 Agent 示例展示工具调用、任务规划、Skill 加载、上下文压缩、后台任务、多 Agent 协作和 worktree 隔离等机制，并在此基础上扩展了一个科研论文助手，用于将 PDF / Markdown / text 论文转换为结构化科研阅读报告。
+
+核心观点：
+
+```text
+Agent Product = Model + Harness
+
+Harness = Tools
+        + Knowledge
+        + Observation
+        + Action Interfaces
+        + Permissions
+        + Context Management
+        + Task Runtime
+```
+
+模型负责推理和决策，Harness 负责提供可观察、可执行、可控制的工作环境。
+
+## 项目亮点
+
+- 实现最小 Agent Loop，支持 `tool_use -> tool_result -> continue` 的多轮工具调用流程。
+- 设计工具注册与分发机制，将 shell、文件读写、编辑、任务管理等能力抽象为可组合工具。
+- 实现 Todo 和持久化任务系统，支持多步任务规划、任务依赖、状态流转和长期目标管理。
+- 新增 `agent_lab` CLI，支持任务、事件、技能、文档和论文助手的本地操作。
+- 新增 JSONL 事件日志，记录任务创建、认领、完成和论文报告生成等运行时事件。
+- 构建 Next.js Web Dashboard，展示任务状态、技能索引、文档统计、事件时间线和任务依赖图。
+- 新增科研知识扩展：论文助手支持 PDF / Markdown / text 上传和结构化科研阅读报告生成。
+- 新增 Research Skill Pack，将论文阅读、方法分析、实验分析和科研报告写作沉淀为可复用 Skill。
+- 配置 pytest、TypeScript check 和 Next.js build，保证基础质量。
+
+## 快速开始
+
+克隆仓库并安装 Python 依赖：
+
+```bash
+git clone https://github.com/penglei0501/agent-harness-lab.git
+cd agent-harness-lab
+
+python3 -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
+```
+
+启动 Web 页面：
+
+```bash
+cd web
+npm install
+npm run dev
+```
+
+打开论文助手：
+
+```text
+http://localhost:3000/zh/papers
+```
+
+常用命令：
+
+```bash
+cd /path/to/agent-harness-lab
+python -m agent_lab demo seed
+python -m agent_lab papers read papers/input/example.pdf
+python -m agent_lab tasks list
+python -m agent_lab events list
+```
+
+本地运行数据不会提交到 Git，包括 `.tasks/`、`.agent_lab/`、`papers/input/` 和 `papers/output/`。
+
+## 论文助手
+
+论文助手是 Agent Harness Lab 的科研知识扩展，不改变项目主线。它展示一个通用 Harness 如何扩展到研究生科研工作流。
+
+支持两种使用方式：
+
+```bash
+python -m agent_lab papers read papers/input/example.pdf
+python -m agent_lab papers read-folder papers/input
+```
+
+也可以打开 Web 页面拖拽上传：
+
+```text
+http://localhost:3000/zh/papers
+```
+
+生成的 Markdown 报告保存在：
+
+```text
+papers/output/
+```
+
+报告结构包括：
+
+```text
+Basic Info
+Research Background
+Research Gap
+Method
+Experiments
+Results and Conclusion
+Limitations
+Research Discussion Questions
+Research Follow-up Ideas
+Concise Research Summary
+```
+
+## Research Skill Pack
+
+```text
+paper-reading             整体论文结构化阅读流程
+method-analysis           方法、模型、算法、系统和假设分析
+experiment-analysis       数据集、baseline、指标、消融和结果分析
+research-report-writing   结构化科研阅读报告生成
+```
+
+这些 Skill 位于 `skills/` 目录，用于展示 Agent 如何按需加载领域知识，而不是只依赖一次性 Prompt。
+
+## 项目结构
+
+```text
+.
+├── agents/                  # 12 个递进式 Agent Harness 示例 + 综合实现
+├── agent_lab/               # 个人扩展的 Agent Harness Lab CLI
+├── docs/                    # 中英文课程内容源
+├── papers/                  # 本地论文输入与报告输出目录，可按需创建
+├── skills/                  # Skill 按需加载示例和 Research Skill Pack
+├── web/                     # Next.js 可视化学习站和论文助手页面
+├── tests/                   # Python 测试
+├── .github/workflows/       # CI 配置
+├── requirements.txt         # Python 依赖
+└── README.md                # 英文说明
+```
+
+## 学习路径
+
+| Session | Topic | 展示内容 |
+| --- | --- | --- |
+| s01 | Agent Loop | 最小模型-工具循环 |
+| s02 | Tool Use | 工具注册与 dispatch map |
+| s03 | TodoWrite | 多步任务规划 |
+| s04 | Subagent | 子任务上下文隔离 |
+| s05 | Skills | 知识按需加载 |
+| s06 | Context Compact | 长上下文压缩 |
+| s07 | Task System | 文件持久化任务图 |
+| s08 | Background Tasks | 慢任务后台执行 |
+| s09 | Agent Teams | 持久队友与异步邮箱 |
+| s10 | Team Protocols | request-response 协议 |
+| s11 | Autonomous Agents | 自主扫描和认领任务 |
+| s12 | Worktree Isolation | task 与 git worktree 绑定 |
+| s_full | Full Reference | 多机制综合参考实现 |
+
+## Web 页面
+
+```bash
+cd web
+npm run dev
+```
+
+常用页面：
+
+```text
+http://localhost:3000/zh/dashboard
+http://localhost:3000/zh/papers
+http://localhost:3000/zh/timeline
+```
+
+`npm run dev` 会先运行 `npm run extract`，把课程文档、任务、事件、技能和论文报告数据提取到 `web/src/data/generated/`。
+
+## 测试
+
+运行 Python 测试：
+
+```bash
+source .venv/bin/activate
+python -m pytest
+```
+
+运行 Web 构建：
+
+```bash
+cd web
+npm run build
+```
+
+## 后续计划
+
+- 为论文助手接入 LLM 总结、引用信息抽取和多篇论文对比报告。
+- 增加论文任务规划，让 `papers plan` 自动生成论文阅读任务链。
+- 增加章节级缓存和上下文压缩，支持更长论文处理。
+- 增加本地论文库检索，将单篇论文助手扩展为本地科研知识库。
+- 补充截图、演示 GIF 和在线部署链接。
+
+## 项目来源
+
+本项目基于 [shareAI-lab/learn-claude-code](https://github.com/shareAI-lab/learn-claude-code) 的学习材料和示例代码进行整理、实验和扩展，目标是将 Claude Code 类编程 Agent 的 Harness 机制沉淀为一个可运行、可测试、可视化的个人学习项目。
+
+原项目保留为本地 upstream，本仓库作为个人学习与改进版本维护。
+
+## License
+
+MIT License.

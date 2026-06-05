@@ -1,5 +1,7 @@
 # Agent Harness Lab
 
+English | [简体中文](README.zh-CN.md)
+
 A Python + Next.js lab for learning and visualizing coding agent harness architecture.
 
 这是一个用于学习、实验和可视化编程 Agent Harness 架构的工程项目。项目以 Claude Code 类编程 Agent 的核心机制为研究对象，用 Python 实现一组递进式 agent runtime 示例，并用 Next.js 构建可视化学习站，帮助理解一个模型如何通过工具、上下文、任务系统和执行环境完成真实软件工程工作。
