@@ -221,6 +221,13 @@ http://localhost:3000/en/dashboard
 http://localhost:3000/zh/dashboard
 ```
 
+Paper assistant routes:
+
+```text
+http://localhost:3000/en/papers
+http://localhost:3000/zh/papers
+```
+
 `npm run dev` automatically runs `npm run extract` first, which extracts Markdown course content and dashboard data into `web/src/data/generated/`.
 
 ### 5. Tests

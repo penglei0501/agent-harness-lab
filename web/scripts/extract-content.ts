@@ -10,6 +10,7 @@ import type {
   DashboardSkill,
   DashboardTask,
   DashboardTaskDependency,
+  DashboardPaperNote,
 } from "../src/types/agent-data";
 import { VERSION_META, VERSION_ORDER, LEARNING_PATH } from "../src/lib/constants";
 
@@ -21,6 +22,7 @@ const DOCS_DIR = path.join(REPO_ROOT, "docs");
 const TASKS_DIR = path.join(REPO_ROOT, ".tasks");
 const SKILLS_DIR = path.join(REPO_ROOT, "skills");
 const EVENTS_PATH = path.join(REPO_ROOT, ".agent_lab", "events.jsonl");
+const PAPERS_OUTPUT_DIR = path.join(REPO_ROOT, "papers", "output");
 const OUT_DIR = path.join(WEB_DIR, "src", "data", "generated");
 
 // Map python filenames to version IDs
@@ -249,6 +251,30 @@ function buildDashboardData(docs: DocContent[]): DashboardData {
     }
   }
 
+  const paperItems: DashboardPaperNote[] = [];
+  if (fs.existsSync(PAPERS_OUTPUT_DIR)) {
+    const noteFiles = fs
+      .readdirSync(PAPERS_OUTPUT_DIR)
+      .filter((file) => file.endsWith(".md"))
+      .sort((a, b) => a.localeCompare(b, undefined, { numeric: true }));
+
+    for (const file of noteFiles) {
+      const filePath = path.join(PAPERS_OUTPUT_DIR, file);
+      const content = fs.readFileSync(filePath, "utf-8");
+      const titleMatch = content.match(/^#\s+Paper Note:\s+(.+)$/m);
+      const sourceMatch = content.match(/^- Source:\s+`(.+)`$/m);
+      const wordCountMatch = content.match(/^- Approx\. word count:\s+(\d+)$/m);
+      const stat = fs.statSync(filePath);
+      paperItems.push({
+        title: titleMatch?.[1] ?? path.basename(file, ".md"),
+        path: repoRelative(filePath),
+        source: sourceMatch?.[1] ?? "-",
+        wordCount: Number(wordCountMatch?.[1] ?? 0),
+        updatedAt: stat.mtime.toISOString(),
+      });
+    }
+  }
+
   return {
     tasks: {
       total: taskItems.length,
@@ -269,6 +295,10 @@ function buildDashboardData(docs: DocContent[]): DashboardData {
     events: {
       total: eventItems.length,
       recent: eventItems.slice(-10).reverse(),
+    },
+    papers: {
+      total: paperItems.length,
+      notes: paperItems.slice(-12).reverse(),
     },
   };
 }
@@ -445,6 +475,7 @@ function main() {
   console.log(`  ${dashboard.tasks.total} tasks`);
   console.log(`  ${dashboard.skills.total} skills`);
   console.log(`  ${dashboard.events.total} events`);
+  console.log(`  ${dashboard.papers?.total ?? 0} paper notes`);
   for (const v of versions) {
     console.log(
       `    ${v.id}: ${v.loc} LOC, ${v.tools.length} tools, ${v.classes.length} classes, ${v.functions.length} functions`

@@ -55,7 +55,7 @@
     ]
   },
   "skills": {
-    "total": 4,
+    "total": 5,
     "items": [
       {
         "name": "agent-builder",
@@ -71,6 +71,11 @@
         "name": "mcp-builder",
         "description": "Build MCP (Model Context Protocol) servers that give Claude new capabilities. Use when user wants to create an MCP server, add tools to Claude, or integrate external services.",
         "path": "skills/mcp-builder/SKILL.md"
+      },
+      {
+        "name": "paper-reading",
+        "description": "Read academic papers for graduate research workflows and produce structured notes for group meetings.",
+        "path": "skills/paper-reading/SKILL.md"
       },
       {
         "name": "pdf",
@@ -89,5 +94,9 @@
   "events": {
     "total": 0,
     "recent": []
+  },
+  "papers": {
+    "total": 0,
+    "notes": []
   }
 }

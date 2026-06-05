@@ -66,6 +66,14 @@ export interface DashboardEvent {
   subject: string;
 }
 
+export interface DashboardPaperNote {
+  title: string;
+  path: string;
+  source: string;
+  wordCount: number;
+  updatedAt: string;
+}
+
 export interface DashboardData {
   tasks: {
     total: number;
@@ -86,6 +94,10 @@ export interface DashboardData {
   events: {
     total: number;
     recent: DashboardEvent[];
+  };
+  papers?: {
+    total: number;
+    notes: DashboardPaperNote[];
   };
 }
 
