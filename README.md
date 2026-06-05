@@ -2,11 +2,9 @@
 
 English | [简体中文](README.zh-CN.md)
 
-A Python + Next.js lab for learning and visualizing coding agent harness architecture.
+A Python + Next.js Agent Harness lab for learning, experimenting with, and visualizing coding-agent runtime architecture. The project includes progressive agent examples, a local `agent_lab` CLI, a Web dashboard, and a research knowledge extension that turns PDF / Markdown / text papers into structured research reading reports.
 
-这是一个用于学习、实验和可视化编程 Agent Harness 架构的工程项目。项目以 Claude Code 类编程 Agent 的核心机制为研究对象，用 Python 实现一组递进式 agent runtime 示例，并用 Next.js 构建可视化学习站，帮助理解一个模型如何通过工具、上下文、任务系统和执行环境完成真实软件工程工作。
-
-核心观点：
+Core idea:
 
 ```text
 Agent Product = Model + Harness
@@ -20,112 +18,20 @@ Harness = Tools
         + Task Runtime
 ```
 
-模型负责推理和决策，Harness 负责提供可观察、可执行、可控制的工作环境。
+The model reasons and decides. The harness provides the observable, executable, and controllable environment around it.
 
 ## Project Highlights
 
-- 实现最小 agent loop：支持 `tool_use -> tool_result -> continue` 的多轮工具调用流程。
-- 设计工具注册与分发机制：将 shell、文件读写、编辑、任务管理等能力抽象为可组合工具。
-- 实现 Todo 和持久化任务系统：支持多步任务规划、任务依赖、状态流转和长期目标管理。
-- 新增 `agent_lab` CLI：支持本地任务创建、查看、认领、完成，以及 skills/docs 资产索引。
-- 新增 JSONL 事件日志：记录任务创建、认领、完成等本地运行时事件。
-- 新增 Web Dashboard：聚合展示任务状态、技能索引、文档统计和事件日志概览。
-- Dashboard 支持任务依赖图和事件时间线，展示任务阻塞关系与运行轨迹。
-- 新增 `demo seed` 命令：一键生成 Dashboard 演示任务、依赖和事件数据。
-- 新增科研场景扩展：`papers` CLI 可读取论文 PDF / Markdown / text，生成结构化科研阅读报告。
-- 新增 Research Skill Pack：沉淀论文阅读、方法分析、实验分析和科研报告写作流程。
-- 实现 Subagent 上下文隔离：将探索性任务放入独立 `messages[]`，减少主上下文污染。
-- 实现 Skill 按需加载：只在需要时加载领域知识，降低 system prompt 占用。
-- 实现上下文压缩策略：通过微压缩、自动压缩和手动压缩支撑长会话。
-- 实现后台任务机制：长时间命令异步执行，完成后通过通知回到 agent loop。
-- 实现多 Agent 团队协作：基于 JSONL mailbox 的队友身份、消息通信和协议握手。
-- 实现 Git worktree 任务隔离：让并行任务在独立目录中执行，减少文件冲突。
-- 构建 Next.js 可视化学习站：展示课程文档、执行流程、架构演进和代码差异。
-- 配置 Python 与 Web CI：使用 pytest、TypeScript check 和 Next.js build 做基础质量保障。
-
-## Tech Stack
-
-- Python 3.11+
-- Anthropic SDK
-- pytest
-- TypeScript
-- React
-- Next.js
-- Tailwind CSS
-- Git worktree
-- JSON / JSONL
-- Markdown content extraction
-- GitHub Actions
-
-## Repository Structure
-
-```text
-.
-├── agents/                  # 12 个递进式 Agent Harness 示例 + 综合实现
-├── agent_lab/               # 个人扩展的 Agent Harness Lab CLI
-├── docs/                    # 中英文课程内容源
-├── papers/                  # 本地论文输入与阅读笔记输出目录，可按需创建
-├── skills/                  # Skill 按需加载示例
-├── web/                     # Next.js 可视化学习站
-├── tests/                   # Agent 脚本 smoke tests
-├── data_pipeline/           # 数据处理流水线练习模块
-├── my_package/              # Python 包与测试练习
-├── .github/workflows/       # CI 配置
-├── requirements.txt         # Python 依赖
-└── README.md                # 项目说明
-```
-
-## Learning Path
-
-`agents/` 目录按照从简单到复杂的顺序组织：
-
-| Session | Topic | What It Demonstrates |
-| --- | --- | --- |
-| s01 | Agent Loop | 最小模型-工具循环 |
-| s02 | Tool Use | 工具注册与 dispatch map |
-| s03 | TodoWrite | 多步任务规划 |
-| s04 | Subagent | 子任务上下文隔离 |
-| s05 | Skills | 知识按需加载 |
-| s06 | Context Compact | 长上下文压缩 |
-| s07 | Task System | 文件持久化任务图 |
-| s08 | Background Tasks | 慢任务后台执行 |
-| s09 | Agent Teams | 持久队友与异步邮箱 |
-| s10 | Team Protocols | request-response 协议 |
-| s11 | Autonomous Agents | 自主扫描和认领任务 |
-| s12 | Worktree Isolation | task 与 git worktree 绑定 |
-| s_full | Full Reference | 多机制综合参考实现 |
-
-## Architecture
-
-```text
-User Request
-    |
-    v
-messages[]
-    |
-    v
-LLM / Agent Model
-    |
-    | tool_use
-    v
-Tool Dispatch
-    |
-    +-- Shell / Bash
-    +-- File Read / Write / Edit
-    +-- Todo Manager
-    +-- Skill Loader
-    +-- Context Compactor
-    +-- Background Runner
-    +-- Task Store
-    +-- Team Mailbox
-    +-- Worktree Manager
-    |
-    v
-tool_result
-    |
-    v
-messages[] continues until the model stops using tools
-```
+- Implements a minimal agent loop with multi-turn `tool_use -> tool_result -> continue` execution.
+- Builds a tool registration and dispatch layer for shell, file operations, editing, task management, and skill loading.
+- Adds a local `agent_lab` CLI for tasks, events, skills, docs, demo data, and paper reports.
+- Persists task state in JSON files and records runtime actions in a local JSONL event log.
+- Provides a Next.js dashboard for tasks, skill index, docs inventory, task dependencies, and event timelines.
+- Adds a research knowledge extension: paper reading assistant for PDF / Markdown / text files.
+- Supports drag-and-drop paper upload in the Web UI and returns generated Markdown reports.
+- Adds a Research Skill Pack for paper reading, method analysis, experiment analysis, and research report writing.
+- Demonstrates subagents, context compaction, background tasks, multi-agent coordination, and worktree isolation.
+- Uses pytest, TypeScript checks, Next.js build, and GitHub Actions for basic quality coverage.
 
 ## Quick Start
 
@@ -161,15 +67,129 @@ cd /path/to/agent-harness-lab
 python -m agent_lab demo seed
 python -m agent_lab papers read papers/input/example.pdf
 python -m agent_lab tasks list
+python -m agent_lab events list
 ```
 
 Local runtime data such as `.tasks/`, `.agent_lab/`, `papers/input/`, and `papers/output/` is ignored by Git.
 
-## Getting Started
+## Paper Reading Assistant
 
-### 1. Agent Lab CLI
+The paper assistant is a research knowledge extension built on top of the core Agent Harness Lab. It does not change the main project direction; it demonstrates how a general harness can be extended into a graduate research workflow.
 
-This project includes a lightweight CLI for inspecting local harness assets:
+CLI usage:
+
+```bash
+mkdir -p papers/input papers/output
+python -m agent_lab papers read papers/input/example.pdf
+python -m agent_lab papers read-folder papers/input
+python -m agent_lab papers list
+```
+
+Web usage:
+
+```text
+http://localhost:3000/zh/papers
+```
+
+The Web page supports local drag-and-drop upload in development/server mode. Uploaded files are saved to `papers/input/`, processed by `agent_lab papers read`, and returned to the page as a Markdown report. Generated notes are saved in `papers/output/`.
+
+Generated reports include:
+
+```text
+Basic Info
+Research Background
+Research Gap
+Method
+Experiments
+Results and Conclusion
+Limitations
+Research Discussion Questions
+Research Follow-up Ideas
+Concise Research Summary
+```
+
+PDF support uses local text extraction when available (`pdftotext`, `pypdf`, or PyMuPDF). Markdown and plain text work without extra dependencies.
+
+## Research Skill Pack
+
+```text
+paper-reading             Overall structured paper reading workflow
+method-analysis           Method, model, algorithm, system, and assumption analysis
+experiment-analysis       Dataset, baseline, metric, ablation, and result analysis
+research-report-writing   Structured research report generation
+```
+
+These skills live in `skills/` and show how an agent can load domain knowledge on demand instead of relying on one large prompt.
+
+## Repository Structure
+
+```text
+.
+├── agents/                  # 12 progressive Agent Harness examples + full reference
+├── agent_lab/               # Project-specific Agent Harness Lab CLI
+├── docs/                    # English and Chinese learning content
+├── papers/                  # Local paper input and report output directories
+├── skills/                  # On-demand skills and Research Skill Pack
+├── web/                     # Next.js learning site and paper assistant page
+├── tests/                   # Python tests
+├── data_pipeline/           # Data pipeline practice module
+├── my_package/              # Python package practice module
+├── .github/workflows/       # CI workflows
+├── requirements.txt         # Python dependencies
+└── README.zh-CN.md          # Chinese documentation
+```
+
+## Learning Path
+
+| Session | Topic | What It Demonstrates |
+| --- | --- | --- |
+| s01 | Agent Loop | Minimal model-tool loop |
+| s02 | Tool Use | Tool registry and dispatch map |
+| s03 | TodoWrite | Multi-step task planning |
+| s04 | Subagent | Subtask context isolation |
+| s05 | Skills | On-demand knowledge loading |
+| s06 | Context Compact | Long-context compression |
+| s07 | Task System | File-persisted task graph |
+| s08 | Background Tasks | Slow commands in the background |
+| s09 | Agent Teams | Persistent teammates and async mailboxes |
+| s10 | Team Protocols | Request-response protocols |
+| s11 | Autonomous Agents | Autonomous task scanning and claiming |
+| s12 | Worktree Isolation | Task-bound git worktree execution |
+| s_full | Full Reference | Combined reference implementation |
+
+## Architecture
+
+```text
+User Request
+    |
+    v
+messages[]
+    |
+    v
+LLM / Agent Model
+    |
+    | tool_use
+    v
+Tool Dispatch
+    |
+    +-- Shell / Bash
+    +-- File Read / Write / Edit
+    +-- Todo Manager
+    +-- Skill Loader
+    +-- Context Compactor
+    +-- Background Runner
+    +-- Task Store
+    +-- Team Mailbox
+    +-- Worktree Manager
+    |
+    v
+tool_result
+    |
+    v
+messages[] continues until the model stops using tools
+```
+
+## Agent Lab CLI
 
 ```bash
 python -m agent_lab --help
@@ -188,102 +208,29 @@ python -m agent_lab skills list
 python -m agent_lab docs list
 ```
 
-It provides a project-specific tooling layer over the task board, event log, skill files, paper reading notes, and course content. Task commands persist local state in `.tasks/task_N.json`; task lifecycle events are appended to `.agent_lab/events.jsonl`, which can later feed a Web dashboard or runtime timeline. Use `python -m agent_lab demo seed` to populate demo tasks and events before opening the dashboard.
+Task commands persist local state in `.tasks/task_N.json`. Runtime events are appended to `.agent_lab/events.jsonl`.
 
-### 2. Research Scenario Extension: Paper Reading Assistant
-
-This project also includes a graduate research workflow extension. Students can provide a paper PDF, Markdown file, text file, or a folder of papers, and the CLI generates structured Markdown research reading reports:
+## Web Pages
 
 ```bash
-mkdir -p papers/input papers/output
-python -m agent_lab papers read papers/input/example.pdf
-python -m agent_lab papers read-folder papers/input
-python -m agent_lab papers list
-```
-
-Generated notes are written to `papers/output/*.md` and include:
-
-```text
-Basic Info
-Research Background
-Research Gap
-Method
-Experiments
-Results and Conclusion
-Limitations
-Research Discussion Questions
-Research Follow-up Ideas
-Concise Research Summary
-```
-
-The module records `paper_read` and `paper_note_generated` events in `.agent_lab/events.jsonl`, so paper reading activity can appear in the existing Dashboard timeline. PDF support uses local text extraction when available (`pdftotext`, `pypdf`, or PyMuPDF); Markdown and plain text work without extra dependencies.
-
-Research Skill Pack:
-
-```text
-paper-reading             Overall structured paper reading workflow
-method-analysis           Method, model, algorithm, system, and assumption analysis
-experiment-analysis       Dataset, baseline, metric, ablation, and result analysis
-research-report-writing   Structured research report generation
-```
-
-### 3. Python Agent Examples
-
-Create a virtual environment and install dependencies:
-
-```bash
-python3 -m venv .venv
-source .venv/bin/activate
-pip install -r requirements.txt
-```
-
-Create `.env` from the example file and set your model configuration:
-
-```bash
-cp .env.example .env
-```
-
-Then run a teaching session:
-
-```bash
-python agents/s01_agent_loop.py
-python agents/s_full.py
-```
-
-### 4. Web Visualization
-
-```bash
-cd /path/to/agent-harness-lab
 cd web
-npm install
 npm run dev
 ```
 
-Open:
-
-```text
-http://localhost:3000
-```
-
-Dashboard routes:
+Common routes:
 
 ```text
 http://localhost:3000/en/dashboard
 http://localhost:3000/zh/dashboard
-```
-
-Paper assistant routes:
-
-```text
 http://localhost:3000/en/papers
 http://localhost:3000/zh/papers
+http://localhost:3000/en/timeline
+http://localhost:3000/zh/timeline
 ```
 
-The paper assistant page supports local drag-and-drop upload in development/server mode. Uploaded files are saved to `papers/input/`, processed by `agent_lab papers read`, and returned to the page as a Markdown report. Generated notes are saved in `papers/output/`.
+`npm run dev` automatically runs `npm run extract`, which extracts Markdown course content and local dashboard data into `web/src/data/generated/`.
 
-`npm run dev` automatically runs `npm run extract` first, which extracts Markdown course content and dashboard data into `web/src/data/generated/`.
-
-### 5. Tests
+## Tests
 
 Run Python tests:
 
@@ -299,44 +246,19 @@ cd web
 npm run build
 ```
 
-## Project Summary
-
-```text
-Agent Harness Lab
-基于 Python + Next.js 构建的编程 Agent Harness 学习与可视化系统，复现 Claude Code 类 Agent 的核心运行机制，包括工具调用循环、任务规划、Subagent 隔离、Skill 按需加载、上下文压缩、后台任务、多 Agent 协作和 Git worktree 隔离执行。
-```
-
-Implemented capabilities:
-
-```text
-- 实现模型驱动的 agent loop，支持 tool_use 到 tool_result 的多轮执行机制。
-- 设计可扩展工具分发层，将 shell、文件操作、任务管理、技能加载等能力抽象为可组合工具。
-- 抽象 `agent_lab` CLI，支持任务创建、查看、认领、完成和 JSON 文件持久化。
-- 实现基于 JSONL 的事件日志系统，记录任务生命周期并支持 `events list/tail` 查询。
-- 构建 Web Dashboard，聚合展示 tasks、skills、docs 和 events 的本地运行状态。
-- Dashboard 支持任务依赖图和事件时间线，用于观察任务阻塞关系与运行轨迹。
-- 新增 demo seed 命令，一键生成任务、依赖和事件数据，支持 Dashboard 快速演示。
-- 新增论文阅读助手模块，支持将 PDF / Markdown / text 论文转换为结构化科研阅读报告。
-- 新增 Research Skill Pack，将论文阅读、方法分析、实验分析和科研报告写作沉淀为 Agent 可复用的领域工作流。
-- 实现文件持久化 DAG 任务系统和 JSONL mailbox，支持多 Agent 协作、任务认领和协议握手。
-- 使用 Next.js 构建可视化学习站，展示 Agent Harness 的架构演进、执行流程和课程内容。
-- 配置 pytest 与 GitHub Actions，保障 Python 示例和 Web 构建稳定性。
-```
-
 ## Future Improvements
 
-- 抽象统一 CLI，例如 `agent-lab run --mode s03`、`agent-lab tasks list`。
-- 扩展 Dashboard，加入工具调用、team inbox 和 worktree 状态。
-- 增强任务系统，加入 priority、labels、retry 和更完整的依赖解锁策略。
-- 增加端到端交互 Demo，让用户从 Web 页面触发一次 agent task 并观察执行流程。
-- 为论文阅读助手接入 LLM 总结、引用信息抽取和多篇论文对比报告。
-- 补充架构图、截图和部署链接，使项目更适合公开展示。
+- Add LLM-assisted paper summarization, citation extraction, and multi-paper comparison.
+- Add `papers plan` to create a task chain for paper reading workflows.
+- Add section-level cache and context compression for long papers.
+- Add local paper library search and retrieval.
+- Add screenshots, demo GIFs, and a public deployment link.
 
 ## Project Origin
 
-本项目基于 [shareAI-lab/learn-claude-code](https://github.com/shareAI-lab/learn-claude-code) 的学习材料和示例代码进行整理、实验和扩展，目标是将 Claude Code 类编程 Agent 的 Harness 机制沉淀为一个可运行、可测试、可视化的个人学习项目。
+This project is based on learning materials and example code from [shareAI-lab/learn-claude-code](https://github.com/shareAI-lab/learn-claude-code). The goal is to turn Claude Code-style Agent Harness mechanisms into a runnable, testable, and visual personal learning project.
 
-原项目保留为本地 upstream，本仓库作为个人学习与改进版本维护。
+The original repository is kept as a local `upstream`; this repository is maintained as a personal learning and extension version.
 
 ## License
 
