@@ -125,6 +125,44 @@ tool_result
 messages[] continues until the model stops using tools
 ```
 
+## Quick Start
+
+Clone the repository and set up Python dependencies:
+
+```bash
+git clone https://github.com/penglei0501/agent-harness-lab.git
+cd agent-harness-lab
+
+python3 -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
+```
+
+Run the Web app:
+
+```bash
+cd web
+npm install
+npm run dev
+```
+
+Open the paper assistant:
+
+```text
+http://localhost:3000/zh/papers
+```
+
+Useful local commands:
+
+```bash
+cd /path/to/agent-harness-lab
+python -m agent_lab demo seed
+python -m agent_lab papers read papers/input/example.pdf
+python -m agent_lab tasks list
+```
+
+Local runtime data such as `.tasks/`, `.agent_lab/`, `papers/input/`, and `papers/output/` is ignored by Git.
+
 ## Getting Started
 
 ### 1. Agent Lab CLI
@@ -213,6 +251,7 @@ python agents/s_full.py
 ### 4. Web Visualization
 
 ```bash
+cd /path/to/agent-harness-lab
 cd web
 npm install
 npm run dev
