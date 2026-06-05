@@ -30,6 +30,8 @@ Harness = Tools
 - 新增 Web Dashboard：聚合展示任务状态、技能索引、文档统计和事件日志概览。
 - Dashboard 支持任务依赖图和事件时间线，展示任务阻塞关系与运行轨迹。
 - 新增 `demo seed` 命令：一键生成 Dashboard 演示任务、依赖和事件数据。
+- 新增科研场景扩展：`papers` CLI 可读取论文 PDF / Markdown / text，生成组会汇报用 Markdown 笔记。
+- 新增 `paper-reading` Skill：沉淀论文阅读、方法提取、实验分析和组会讨论问题生成流程。
 - 实现 Subagent 上下文隔离：将探索性任务放入独立 `messages[]`，减少主上下文污染。
 - 实现 Skill 按需加载：只在需要时加载领域知识，降低 system prompt 占用。
 - 实现上下文压缩策略：通过微压缩、自动压缩和手动压缩支撑长会话。
@@ -60,6 +62,7 @@ Harness = Tools
 ├── agents/                  # 12 个递进式 Agent Harness 示例 + 综合实现
 ├── agent_lab/               # 个人扩展的 Agent Harness Lab CLI
 ├── docs/                    # 中英文课程内容源
+├── papers/                  # 本地论文输入与阅读笔记输出目录，可按需创建
 ├── skills/                  # Skill 按需加载示例
 ├── web/                     # Next.js 可视化学习站
 ├── tests/                   # Agent 脚本 smoke tests
@@ -138,13 +141,43 @@ python -m agent_lab tasks complete 6
 python -m agent_lab events list
 python -m agent_lab events tail --limit 10
 python -m agent_lab demo seed
+python -m agent_lab papers read papers/input/example.pdf
+python -m agent_lab papers read-folder papers/input
+python -m agent_lab papers list
 python -m agent_lab skills list
 python -m agent_lab docs list
 ```
 
-It provides a project-specific tooling layer over the task board, event log, skill files, and course content. Task commands persist local state in `.tasks/task_N.json`; task lifecycle events are appended to `.agent_lab/events.jsonl`, which can later feed a Web dashboard or runtime timeline. Use `python -m agent_lab demo seed` to populate demo tasks and events before opening the dashboard.
+It provides a project-specific tooling layer over the task board, event log, skill files, paper reading notes, and course content. Task commands persist local state in `.tasks/task_N.json`; task lifecycle events are appended to `.agent_lab/events.jsonl`, which can later feed a Web dashboard or runtime timeline. Use `python -m agent_lab demo seed` to populate demo tasks and events before opening the dashboard.
 
-### 2. Python Agent Examples
+### 2. Research Scenario Extension: Paper Reading Assistant
+
+This project also includes a graduate research workflow extension. Students can provide a paper PDF, Markdown file, text file, or a folder of papers, and the CLI generates structured Markdown reading notes for group meeting preparation:
+
+```bash
+mkdir -p papers/input papers/output
+python -m agent_lab papers read papers/input/example.pdf
+python -m agent_lab papers read-folder papers/input
+python -m agent_lab papers list
+```
+
+Generated notes are written to `papers/output/*.md` and include:
+
+```text
+Basic Info
+Research Background
+Research Gap
+Method
+Experiments
+Results and Conclusion
+Limitations
+Group Meeting Discussion Questions
+One-Minute Summary
+```
+
+The module records `paper_read` and `paper_note_generated` events in `.agent_lab/events.jsonl`, so paper reading activity can appear in the existing Dashboard timeline. PDF support uses local text extraction when available (`pdftotext`, `pypdf`, or PyMuPDF); Markdown and plain text work without extra dependencies.
+
+### 3. Python Agent Examples
 
 Create a virtual environment and install dependencies:
 
@@ -167,7 +200,7 @@ python agents/s01_agent_loop.py
 python agents/s_full.py
 ```
 
-### 3. Web Visualization
+### 4. Web Visualization
 
 ```bash
 cd web
@@ -190,7 +223,7 @@ http://localhost:3000/zh/dashboard
 
 `npm run dev` automatically runs `npm run extract` first, which extracts Markdown course content and dashboard data into `web/src/data/generated/`.
 
-### 4. Tests
+### 5. Tests
 
 Run Python tests:
 
@@ -223,6 +256,8 @@ Implemented capabilities:
 - 构建 Web Dashboard，聚合展示 tasks、skills、docs 和 events 的本地运行状态。
 - Dashboard 支持任务依赖图和事件时间线，用于观察任务阻塞关系与运行轨迹。
 - 新增 demo seed 命令，一键生成任务、依赖和事件数据，支持 Dashboard 快速演示。
+- 新增论文阅读助手模块，支持将 PDF / Markdown / text 论文转换为结构化组会阅读笔记。
+- 新增 paper-reading Skill，将论文阅读策略沉淀为 Agent 可复用的领域工作流。
 - 实现文件持久化 DAG 任务系统和 JSONL mailbox，支持多 Agent 协作、任务认领和协议握手。
 - 使用 Next.js 构建可视化学习站，展示 Agent Harness 的架构演进、执行流程和课程内容。
 - 配置 pytest 与 GitHub Actions，保障 Python 示例和 Web 构建稳定性。
@@ -234,6 +269,7 @@ Implemented capabilities:
 - 扩展 Dashboard，加入工具调用、team inbox 和 worktree 状态。
 - 增强任务系统，加入 priority、labels、retry 和更完整的依赖解锁策略。
 - 增加端到端交互 Demo，让用户从 Web 页面触发一次 agent task 并观察执行流程。
+- 为论文阅读助手接入 LLM 总结、引用信息抽取和多篇论文对比报告。
 - 补充架构图、截图和部署链接，使项目更适合公开展示。
 
 ## Project Origin

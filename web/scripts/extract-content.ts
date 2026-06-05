@@ -244,7 +244,7 @@ function buildDashboardData(docs: DocContent[]): DashboardData {
         type: String(data.type ?? "unknown"),
         taskId: String(data.task_id ?? "-"),
         owner: String(data.owner || "-"),
-        subject: String(data.subject ?? "-"),
+        subject: String(data.subject ?? data.title ?? data.paper ?? data.note_path ?? "-"),
       });
     }
   }

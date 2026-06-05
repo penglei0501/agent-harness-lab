@@ -9,6 +9,7 @@ from pathlib import Path
 from .demo import seed_demo_data
 from .docs import load_docs
 from .events import load_events, tail_events
+from .papers import generate_notes_for_folder, generate_paper_note, list_paper_notes
 from .paths import REPO_ROOT
 from .skills import load_skills
 from .tasks import claim_task, complete_task, create_task, get_task, load_tasks
@@ -135,7 +136,12 @@ def _event_rows(events) -> list[list[str]]:
     for event in events:
         task_id = str(event.payload.get("task_id", "-"))
         owner = str(event.payload.get("owner", "-") or "-")
-        subject = str(event.payload.get("subject", "-"))
+        subject = str(
+            event.payload.get("subject")
+            or event.payload.get("title")
+            or event.payload.get("paper")
+            or "-"
+        )
         rows.append([event.timestamp, event.event_type, task_id, owner, subject])
     return rows
 
@@ -158,6 +164,45 @@ def seed_demo_command(args: argparse.Namespace) -> int:
         print(f"Seeded demo tasks: {', '.join(result.task_ids)}")
     else:
         print(f"Demo tasks already exist: {', '.join(result.task_ids)}")
+    return 0
+
+
+def read_paper_command(args: argparse.Namespace) -> int:
+    try:
+        note = generate_paper_note(
+            args.paper_path,
+            output_dir=args.output_dir,
+            events_path=args.events_path,
+        )
+    except (FileNotFoundError, RuntimeError, ValueError) as exc:
+        print(str(exc))
+        return 1
+    print(f"Generated paper note: {_rel(note.note_path)}")
+    return 0
+
+
+def read_paper_folder_command(args: argparse.Namespace) -> int:
+    try:
+        notes = generate_notes_for_folder(
+            args.folder_path,
+            output_dir=args.output_dir,
+            events_path=args.events_path,
+        )
+    except (FileNotFoundError, NotADirectoryError, RuntimeError, ValueError) as exc:
+        print(str(exc))
+        return 1
+    if not notes:
+        print("No supported paper files found.")
+        return 0
+    print(f"Generated {len(notes)} paper notes:")
+    for note in notes:
+        print(f"- {_rel(note.note_path)}")
+    return 0
+
+
+def list_paper_notes_command(args: argparse.Namespace) -> int:
+    rows = [[path.stem, _rel(path)] for path in list_paper_notes(args.output_dir)]
+    _print_table(["Paper", "Note"], rows)
     return 0
 
 
@@ -250,6 +295,34 @@ def build_parser() -> argparse.ArgumentParser:
     demo_seed = demo_sub.add_parser("seed", help="Seed dashboard demo tasks and events")
     demo_seed.set_defaults(func=seed_demo_command)
 
+    papers_parser = subparsers.add_parser("papers", help="Generate research paper notes")
+    papers_parser.add_argument(
+        "--output-dir",
+        type=Path,
+        default=None,
+        help=argparse.SUPPRESS,
+    )
+    papers_parser.add_argument(
+        "--events-path",
+        type=Path,
+        default=None,
+        help=argparse.SUPPRESS,
+    )
+    papers_sub = papers_parser.add_subparsers(dest="action", required=True)
+    papers_read = papers_sub.add_parser("read", help="Generate a note from one paper")
+    papers_read.add_argument("paper_path", type=Path, help="Path to a .pdf, .txt, or .md paper")
+    papers_read.set_defaults(func=read_paper_command)
+
+    papers_folder = papers_sub.add_parser(
+        "read-folder",
+        help="Generate notes for all supported papers in a folder",
+    )
+    papers_folder.add_argument("folder_path", type=Path, help="Folder containing paper files")
+    papers_folder.set_defaults(func=read_paper_folder_command)
+
+    papers_list = papers_sub.add_parser("list", help="List generated paper notes")
+    papers_list.set_defaults(func=list_paper_notes_command)
+
     return parser
 
 
@@ -264,4 +337,8 @@ def main(argv: Sequence[str] | None = None) -> int:
         from .paths import EVENTS_PATH
 
         args.events_path = EVENTS_PATH
+    if getattr(args, "output_dir", None) is None:
+        from .paths import PAPERS_OUTPUT_DIR
+
+        args.output_dir = PAPERS_OUTPUT_DIR
     return args.func(args)

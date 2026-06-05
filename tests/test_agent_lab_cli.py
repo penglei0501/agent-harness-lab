@@ -6,6 +6,7 @@ from pathlib import Path
 from agent_lab.cli import main
 from agent_lab.docs import load_docs
 from agent_lab.events import append_event, load_events, tail_events
+from agent_lab.papers import generate_notes_for_folder, generate_paper_note
 from agent_lab.skills import load_skills
 from agent_lab.tasks import claim_task, complete_task, create_task, load_tasks
 
@@ -186,3 +187,75 @@ def test_cli_demo_seed_is_non_destructive(tmp_path: Path, capsys) -> None:
     repeated = capsys.readouterr()
     assert "Demo tasks already exist" in repeated.out
     assert len(load_tasks(tmp_path)) == 4
+
+
+def test_generate_paper_note_from_text_file(tmp_path: Path) -> None:
+    paper_path = tmp_path / "sample-paper.txt"
+    output_dir = tmp_path / "notes"
+    events_path = tmp_path / "events.jsonl"
+    paper_path.write_text(
+        """A Tiny Agent Harness Study
+
+Abstract
+This paper studies lightweight agent harnesses for software engineering tasks.
+
+Introduction
+Research students need repeatable tools for reading agent behavior.
+
+Method
+We combine task logs, event streams, and structured Markdown notes.
+
+Experiments
+We evaluate the workflow on classroom paper reading examples.
+
+Conclusion
+The harness improves traceability for student research workflows.
+""",
+        encoding="utf-8",
+    )
+
+    note = generate_paper_note(paper_path, output_dir=output_dir, events_path=events_path)
+
+    assert note.title == "A Tiny Agent Harness Study"
+    assert note.note_path.exists()
+    note_text = note.note_path.read_text(encoding="utf-8")
+    assert "## 2. Research Background" in note_text
+    assert "## 8. Group Meeting Discussion Questions" in note_text
+    assert "task logs, event streams" in note_text
+
+    events = load_events(events_path)
+    assert [event.event_type for event in events] == [
+        "paper_read",
+        "paper_note_generated",
+    ]
+    assert events[0].payload["title"] == "A Tiny Agent Harness Study"
+
+
+def test_generate_notes_for_folder_and_cli(tmp_path: Path, capsys) -> None:
+    input_dir = tmp_path / "papers"
+    output_dir = tmp_path / "notes"
+    events_path = tmp_path / "events.jsonl"
+    input_dir.mkdir()
+    (input_dir / "one.md").write_text("# First Research Paper\n\nAbstract\nOne.", encoding="utf-8")
+    (input_dir / "two.txt").write_text("Second Research Paper\n\nAbstract\nTwo.", encoding="utf-8")
+    (input_dir / "ignore.csv").write_text("nope", encoding="utf-8")
+
+    notes = generate_notes_for_folder(input_dir, output_dir=output_dir, events_path=events_path)
+    assert len(notes) == 2
+
+    base_args = [
+        "papers",
+        "--output-dir",
+        str(output_dir),
+        "--events-path",
+        str(events_path),
+    ]
+    assert main([*base_args, "list"]) == 0
+    listed = capsys.readouterr()
+    assert "one" in listed.out
+    assert "two" in listed.out
+
+    single_path = input_dir / "one.md"
+    assert main([*base_args, "read", str(single_path)]) == 0
+    generated = capsys.readouterr()
+    assert "Generated paper note" in generated.out

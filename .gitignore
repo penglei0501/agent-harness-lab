@@ -198,6 +198,8 @@ cython_debug/
 .team/
 .teams/
 .worktrees/
+papers/input/
+papers/output/
 
 # Ruff stuff:
 .ruff_cache/
