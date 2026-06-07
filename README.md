@@ -31,6 +31,7 @@ The model reasons and decides. The harness provides the observable, executable, 
 - Supports drag-and-drop paper upload in the Web UI and returns generated Markdown reports.
 - Adds a Research Skill Pack for paper reading, method analysis, experiment analysis, and research report writing.
 - Adds a smart recipe assistant that produces structured JSON recipe reports from available ingredients.
+- Adds a Life Skill Pack for recipe planning, cooking instructions, and nutrition-aware notes.
 - Demonstrates subagents, context compaction, background tasks, multi-agent coordination, and worktree isolation.
 - Uses pytest, TypeScript checks, Next.js build, and GitHub Actions for basic quality coverage.
 
@@ -141,6 +142,14 @@ python -m agent_lab recipes list
 
 Generated JSON reports are saved in `recipes/output/`.
 
+## Life Skill Pack
+
+```text
+recipe-planning          Practical recipe planning from ingredients and constraints
+cooking-instructions     Clear, timed, kitchen-friendly cooking steps
+nutrition-awareness      Basic dietary-awareness notes without medical advice
+```
+
 ## Repository Structure
 
 ```text
@@ -150,7 +159,7 @@ Generated JSON reports are saved in `recipes/output/`.
 ├── docs/                    # English and Chinese learning content
 ├── papers/                  # Local paper input and report output directories
 ├── recipes/                 # Local structured recipe JSON reports
-├── skills/                  # On-demand skills and Research Skill Pack
+├── skills/                  # On-demand skills, Research Skill Pack, and Life Skill Pack
 ├── web/                     # Next.js learning site and paper assistant page
 ├── tests/                   # Python tests
 ├── data_pipeline/           # Data pipeline practice module

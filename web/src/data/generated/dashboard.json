@@ -55,7 +55,7 @@
     ]
   },
   "skills": {
-    "total": 8,
+    "total": 11,
     "items": [
       {
         "name": "agent-builder",
@@ -66,6 +66,11 @@
         "name": "code-review",
         "description": "Perform thorough code reviews with security, performance, and maintainability analysis. Use when user asks to review code, check for bugs, or audit a codebase.",
         "path": "skills/code-review/SKILL.md"
+      },
+      {
+        "name": "cooking-instructions",
+        "description": "Convert recipe plans into clear, timed, kitchen-friendly cooking steps.",
+        "path": "skills/cooking-instructions/SKILL.md"
       },
       {
         "name": "experiment-analysis",
@@ -83,6 +88,11 @@
         "path": "skills/mcp-builder/SKILL.md"
       },
       {
+        "name": "nutrition-awareness",
+        "description": "Add basic nutrition and dietary-awareness notes without giving medical advice.",
+        "path": "skills/nutrition-awareness/SKILL.md"
+      },
+      {
         "name": "paper-reading",
         "description": "Read academic papers for graduate research workflows and produce structured research notes.",
         "path": "skills/paper-reading/SKILL.md"
@@ -96,6 +106,11 @@
         "name": "research-report-writing",
         "description": "Write structured research reading reports with background, problem, method, experiments, limitations, and follow-up ideas.",
         "path": "skills/research-report-writing/SKILL.md"
+      },
+      {
+        "name": "recipe-planning",
+        "description": "Plan practical recipes from available ingredients, servings, time limits, taste preferences, and avoid lists.",
+        "path": "skills/recipe-planning/SKILL.md"
       }
     ]
   },

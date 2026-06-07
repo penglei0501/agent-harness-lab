@@ -31,6 +31,7 @@ Harness = Tools
 - 新增科研知识扩展：论文助手支持 PDF / Markdown / text 上传和结构化科研阅读报告生成。
 - 新增 Research Skill Pack，将论文阅读、方法分析、实验分析和科研报告写作沉淀为可复用 Skill。
 - 新增智能食谱助手，根据已有食材生成结构化 JSON 食谱报告。
+- 新增 Life Skill Pack，沉淀食谱规划、烹饪步骤和基础营养提醒能力。
 - 配置 pytest、TypeScript check 和 Next.js build，保证基础质量。
 
 ## 快速开始
@@ -144,6 +145,14 @@ python -m agent_lab recipes list
 recipes/output/
 ```
 
+## Life Skill Pack
+
+```text
+recipe-planning          根据食材和约束生成可执行食谱方案
+cooking-instructions     生成清晰、有时间估计、便于厨房执行的步骤
+nutrition-awareness      提供基础饮食提醒，但不提供医疗建议
+```
+
 ## 项目结构
 
 ```text
@@ -153,7 +162,7 @@ recipes/output/
 ├── docs/                    # 中英文课程内容源
 ├── papers/                  # 本地论文输入与报告输出目录，可按需创建
 ├── recipes/                 # 本地结构化食谱 JSON 报告
-├── skills/                  # Skill 按需加载示例和 Research Skill Pack
+├── skills/                  # Skill 按需加载示例、Research Skill Pack 和 Life Skill Pack
 ├── web/                     # Next.js 可视化学习站和论文助手页面
 ├── tests/                   # Python 测试
 ├── .github/workflows/       # CI 配置
