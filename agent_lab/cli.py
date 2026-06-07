@@ -11,6 +11,7 @@ from .docs import load_docs
 from .events import load_events, tail_events
 from .papers import generate_notes_for_folder, generate_paper_note, list_paper_notes
 from .paths import REPO_ROOT
+from .recipes import list_recipe_reports, suggest_recipe
 from .skills import load_skills
 from .tasks import claim_task, complete_task, create_task, get_task, load_tasks
 
@@ -206,6 +207,31 @@ def list_paper_notes_command(args: argparse.Namespace) -> int:
     return 0
 
 
+def suggest_recipe_command(args: argparse.Namespace) -> int:
+    try:
+        report = suggest_recipe(
+            args.ingredients,
+            servings=args.servings,
+            time_minutes=args.time,
+            taste=args.taste,
+            avoid=args.avoid,
+            tools=args.tools,
+            output_dir=args.output_dir,
+            events_path=args.events_path,
+        )
+    except ValueError as exc:
+        print(str(exc))
+        return 1
+    print(f"Generated recipe report: {_rel(report.path) if report.path else report.title}")
+    return 0
+
+
+def list_recipe_reports_command(args: argparse.Namespace) -> int:
+    rows = [[path.stem, _rel(path)] for path in list_recipe_reports(args.output_dir)]
+    _print_table(["Recipe", "Report"], rows)
+    return 0
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         prog="agent_lab",
@@ -323,6 +349,36 @@ def build_parser() -> argparse.ArgumentParser:
     papers_list = papers_sub.add_parser("list", help="List generated paper notes")
     papers_list.set_defaults(func=list_paper_notes_command)
 
+    recipes_parser = subparsers.add_parser("recipes", help="Generate structured recipe reports")
+    recipes_parser.add_argument(
+        "--output-dir",
+        type=Path,
+        default=None,
+        help=argparse.SUPPRESS,
+    )
+    recipes_parser.add_argument(
+        "--events-path",
+        type=Path,
+        default=None,
+        help=argparse.SUPPRESS,
+    )
+    recipes_sub = recipes_parser.add_subparsers(dest="action", required=True)
+    recipes_suggest = recipes_sub.add_parser("suggest", help="Suggest a recipe from ingredients")
+    recipes_suggest.add_argument(
+        "--ingredients",
+        required=True,
+        help="Comma-separated available ingredients, for example: egg,tomato,rice",
+    )
+    recipes_suggest.add_argument("--servings", type=int, default=1, help="Number of servings")
+    recipes_suggest.add_argument("--time", type=int, default=20, help="Available cooking minutes")
+    recipes_suggest.add_argument("--taste", default="balanced", help="Taste preference")
+    recipes_suggest.add_argument("--avoid", default="", help="Comma-separated avoid list")
+    recipes_suggest.add_argument("--tools", default="", help="Comma-separated kitchen tools")
+    recipes_suggest.set_defaults(func=suggest_recipe_command)
+
+    recipes_list = recipes_sub.add_parser("list", help="List generated recipe reports")
+    recipes_list.set_defaults(func=list_recipe_reports_command)
+
     return parser
 
 
@@ -338,7 +394,12 @@ def main(argv: Sequence[str] | None = None) -> int:
 
         args.events_path = EVENTS_PATH
     if getattr(args, "output_dir", None) is None:
-        from .paths import PAPERS_OUTPUT_DIR
+        if getattr(args, "resource", "") == "recipes":
+            from .paths import RECIPES_OUTPUT_DIR
 
-        args.output_dir = PAPERS_OUTPUT_DIR
+            args.output_dir = RECIPES_OUTPUT_DIR
+        else:
+            from .paths import PAPERS_OUTPUT_DIR
+
+            args.output_dir = PAPERS_OUTPUT_DIR
     return args.func(args)

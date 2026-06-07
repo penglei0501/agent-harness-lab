@@ -7,6 +7,7 @@ from agent_lab.cli import main
 from agent_lab.docs import load_docs
 from agent_lab.events import append_event, load_events, tail_events
 from agent_lab.papers import generate_notes_for_folder, generate_paper_note
+from agent_lab.recipes import list_recipe_reports, suggest_recipe
 from agent_lab.skills import load_skills
 from agent_lab.tasks import claim_task, complete_task, create_task, load_tasks
 
@@ -260,3 +261,71 @@ def test_generate_notes_for_folder_and_cli(tmp_path: Path, capsys) -> None:
     assert main([*base_args, "read", str(single_path)]) == 0
     generated = capsys.readouterr()
     assert "Generated paper note" in generated.out
+
+
+def test_suggest_recipe_writes_structured_json(tmp_path: Path) -> None:
+    events_path = tmp_path / "events.jsonl"
+    report = suggest_recipe(
+        "egg,tomato,rice",
+        servings=1,
+        time_minutes=20,
+        taste="light",
+        avoid="spicy",
+        tools="pan",
+        output_dir=tmp_path,
+        events_path=events_path,
+    )
+
+    assert report.title == "Tomato Egg Rice Bowl"
+    assert report.path is not None
+    assert report.path.exists()
+    assert report.steps[0].order == 1
+    assert "egg" in report.ingredients_used
+
+    data = json.loads(report.path.read_text(encoding="utf-8"))
+    assert data["title"] == "Tomato Egg Rice Bowl"
+    assert data["servings"] == 1
+    assert data["steps"][0]["title"] == "Prepare ingredients"
+    assert data["shopping_list"]
+
+    events = load_events(events_path)
+    assert [event.event_type for event in events] == [
+        "recipe_requested",
+        "recipe_generated",
+        "shopping_list_generated",
+    ]
+
+
+def test_cli_recipes_suggest_and_list(tmp_path: Path, capsys) -> None:
+    events_path = tmp_path / "events.jsonl"
+    base_args = [
+        "recipes",
+        "--output-dir",
+        str(tmp_path),
+        "--events-path",
+        str(events_path),
+    ]
+
+    assert main([
+        *base_args,
+        "suggest",
+        "--ingredients",
+        "egg,tomato,rice",
+        "--servings",
+        "2",
+        "--time",
+        "25",
+        "--taste",
+        "savory",
+        "--tools",
+        "pan",
+    ]) == 0
+    generated = capsys.readouterr()
+    assert "Generated recipe report" in generated.out
+
+    reports = list_recipe_reports(tmp_path)
+    assert len(reports) == 1
+
+    assert main([*base_args, "list"]) == 0
+    listed = capsys.readouterr()
+    assert "tomato-egg-rice-bowl" in listed.out

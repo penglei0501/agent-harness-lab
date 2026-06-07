@@ -200,6 +200,7 @@ cython_debug/
 .worktrees/
 papers/input/
 papers/output/
+recipes/output/
 
 # Ruff stuff:
 .ruff_cache/

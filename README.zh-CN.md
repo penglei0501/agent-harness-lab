@@ -30,6 +30,7 @@ Harness = Tools
 - 构建 Next.js Web Dashboard，展示任务状态、技能索引、文档统计、事件时间线和任务依赖图。
 - 新增科研知识扩展：论文助手支持 PDF / Markdown / text 上传和结构化科研阅读报告生成。
 - 新增 Research Skill Pack，将论文阅读、方法分析、实验分析和科研报告写作沉淀为可复用 Skill。
+- 新增智能食谱助手，根据已有食材生成结构化 JSON 食谱报告。
 - 配置 pytest、TypeScript check 和 Next.js build，保证基础质量。
 
 ## 快速开始
@@ -65,11 +66,12 @@ http://localhost:3000/zh/papers
 cd /path/to/agent-harness-lab
 python -m agent_lab demo seed
 python -m agent_lab papers read papers/input/example.pdf
+python -m agent_lab recipes suggest --ingredients "egg,tomato,rice" --servings 1 --time 20
 python -m agent_lab tasks list
 python -m agent_lab events list
 ```
 
-本地运行数据不会提交到 Git，包括 `.tasks/`、`.agent_lab/`、`papers/input/` 和 `papers/output/`。
+本地运行数据不会提交到 Git，包括 `.tasks/`、`.agent_lab/`、`papers/input/`、`papers/output/` 和 `recipes/output/`。
 
 ## 论文助手
 
@@ -120,6 +122,28 @@ research-report-writing   结构化科研阅读报告生成
 
 这些 Skill 位于 `skills/` 目录，用于展示 Agent 如何按需加载领域知识，而不是只依赖一次性 Prompt。
 
+## 智能食谱助手
+
+食谱助手是生活知识扩展。和论文助手不同，食谱助手不输出 Markdown，而是输出结构化 JSON，方便后续 Web 页面渲染成菜谱卡片、食材标签、步骤时间线、购物清单和替代方案。
+
+```bash
+python -m agent_lab recipes suggest \
+  --ingredients "egg,tomato,rice" \
+  --servings 1 \
+  --time 20 \
+  --taste "light" \
+  --avoid "spicy" \
+  --tools "pan"
+
+python -m agent_lab recipes list
+```
+
+生成的 JSON 报告保存在：
+
+```text
+recipes/output/
+```
+
 ## 项目结构
 
 ```text
@@ -128,6 +152,7 @@ research-report-writing   结构化科研阅读报告生成
 ├── agent_lab/               # 个人扩展的 Agent Harness Lab CLI
 ├── docs/                    # 中英文课程内容源
 ├── papers/                  # 本地论文输入与报告输出目录，可按需创建
+├── recipes/                 # 本地结构化食谱 JSON 报告
 ├── skills/                  # Skill 按需加载示例和 Research Skill Pack
 ├── web/                     # Next.js 可视化学习站和论文助手页面
 ├── tests/                   # Python 测试

@@ -30,6 +30,7 @@ The model reasons and decides. The harness provides the observable, executable, 
 - Adds a research knowledge extension: paper reading assistant for PDF / Markdown / text files.
 - Supports drag-and-drop paper upload in the Web UI and returns generated Markdown reports.
 - Adds a Research Skill Pack for paper reading, method analysis, experiment analysis, and research report writing.
+- Adds a smart recipe assistant that produces structured JSON recipe reports from available ingredients.
 - Demonstrates subagents, context compaction, background tasks, multi-agent coordination, and worktree isolation.
 - Uses pytest, TypeScript checks, Next.js build, and GitHub Actions for basic quality coverage.
 
@@ -66,11 +67,12 @@ Useful local commands:
 cd /path/to/agent-harness-lab
 python -m agent_lab demo seed
 python -m agent_lab papers read papers/input/example.pdf
+python -m agent_lab recipes suggest --ingredients "egg,tomato,rice" --servings 1 --time 20
 python -m agent_lab tasks list
 python -m agent_lab events list
 ```
 
-Local runtime data such as `.tasks/`, `.agent_lab/`, `papers/input/`, and `papers/output/` is ignored by Git.
+Local runtime data such as `.tasks/`, `.agent_lab/`, `papers/input/`, `papers/output/`, and `recipes/output/` is ignored by Git.
 
 ## Paper Reading Assistant
 
@@ -121,6 +123,24 @@ research-report-writing   Structured research report generation
 
 These skills live in `skills/` and show how an agent can load domain knowledge on demand instead of relying on one large prompt.
 
+## Smart Recipe Assistant
+
+The recipe assistant is a life knowledge extension. Unlike paper reports, recipe output is stored as structured JSON so the Web UI can later render it as cards, ingredient tags, step timelines, shopping lists, and substitution panels.
+
+```bash
+python -m agent_lab recipes suggest \
+  --ingredients "egg,tomato,rice" \
+  --servings 1 \
+  --time 20 \
+  --taste "light" \
+  --avoid "spicy" \
+  --tools "pan"
+
+python -m agent_lab recipes list
+```
+
+Generated JSON reports are saved in `recipes/output/`.
+
 ## Repository Structure
 
 ```text
@@ -129,6 +149,7 @@ These skills live in `skills/` and show how an agent can load domain knowledge o
 ├── agent_lab/               # Project-specific Agent Harness Lab CLI
 ├── docs/                    # English and Chinese learning content
 ├── papers/                  # Local paper input and report output directories
+├── recipes/                 # Local structured recipe JSON reports
 ├── skills/                  # On-demand skills and Research Skill Pack
 ├── web/                     # Next.js learning site and paper assistant page
 ├── tests/                   # Python tests
@@ -204,6 +225,8 @@ python -m agent_lab demo seed
 python -m agent_lab papers read papers/input/example.pdf
 python -m agent_lab papers read-folder papers/input
 python -m agent_lab papers list
+python -m agent_lab recipes suggest --ingredients "egg,tomato,rice" --servings 1 --time 20
+python -m agent_lab recipes list
 python -m agent_lab skills list
 python -m agent_lab docs list
 ```
