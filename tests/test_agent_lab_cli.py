@@ -296,6 +296,33 @@ def test_suggest_recipe_writes_structured_json(tmp_path: Path) -> None:
     ]
 
 
+def test_suggest_recipe_handles_chinese_inputs_and_serving_tools(tmp_path: Path) -> None:
+    report = suggest_recipe(
+        "土豆,牛肉,辣椒,香菜,葱花",
+        servings=2,
+        time_minutes=20,
+        taste="重口",
+        tools="盘子",
+        output_dir=tmp_path,
+        events_path=tmp_path / "events.jsonl",
+    )
+
+    assert report.title == "土豆牛肉小炒"
+    assert report.summary.startswith("这是一道约 20 分钟完成")
+    assert report.difficulty == "简单"
+    assert report.tools == ["炒锅"]
+    assert report.steps[1].title == "用炒锅烹饪"
+    assert "盘子" not in report.steps[1].description
+    assert "盐" in report.missing_ingredients
+    assert "食用油" in report.missing_ingredients
+    assert "生抽" in report.shopping_list
+    assert "葱花" not in report.missing_ingredients
+
+    data = json.loads(report.path.read_text(encoding="utf-8"))
+    assert data["title"] == "土豆牛肉小炒"
+    assert data["steps"][0]["title"] == "处理食材"
+
+
 def test_cli_recipes_suggest_and_list(tmp_path: Path, capsys) -> None:
     events_path = tmp_path / "events.jsonl"
     base_args = [
