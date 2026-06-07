@@ -56,10 +56,11 @@ npm install
 npm run dev
 ```
 
-Open the paper assistant:
+Open the Web assistants:
 
 ```text
 http://localhost:3000/zh/papers
+http://localhost:3000/zh/recipes
 ```
 
 Useful local commands:
@@ -142,6 +143,21 @@ python -m agent_lab recipes list
 
 Generated JSON reports are saved in `recipes/output/`.
 
+To view generated recipes in the Web UI:
+
+```bash
+cd web
+npm run extract
+npm run dev
+```
+
+Then open:
+
+```text
+http://localhost:3000/zh/recipes
+http://localhost:3000/en/recipes
+```
+
 ## Life Skill Pack
 
 ```text
@@ -160,7 +176,7 @@ nutrition-awareness      Basic dietary-awareness notes without medical advice
 ├── papers/                  # Local paper input and report output directories
 ├── recipes/                 # Local structured recipe JSON reports
 ├── skills/                  # On-demand skills, Research Skill Pack, and Life Skill Pack
-├── web/                     # Next.js learning site and paper assistant page
+├── web/                     # Next.js learning site, paper assistant, and recipe page
 ├── tests/                   # Python tests
 ├── data_pipeline/           # Data pipeline practice module
 ├── my_package/              # Python package practice module
@@ -256,11 +272,13 @@ http://localhost:3000/en/dashboard
 http://localhost:3000/zh/dashboard
 http://localhost:3000/en/papers
 http://localhost:3000/zh/papers
+http://localhost:3000/en/recipes
+http://localhost:3000/zh/recipes
 http://localhost:3000/en/timeline
 http://localhost:3000/zh/timeline
 ```
 
-`npm run dev` automatically runs `npm run extract`, which extracts Markdown course content and local dashboard data into `web/src/data/generated/`.
+`npm run dev` automatically runs `npm run extract`, which extracts Markdown course content, local dashboard data, paper notes, and recipe JSON reports into `web/src/data/generated/`.
 
 ## Tests
 

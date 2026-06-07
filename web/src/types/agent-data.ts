@@ -74,6 +74,41 @@ export interface DashboardPaperNote {
   updatedAt: string;
 }
 
+export interface RecipeStep {
+  order: number;
+  title: string;
+  description: string;
+  time_minutes: number;
+}
+
+export interface RecipeSubstitution {
+  original: string;
+  alternative: string;
+}
+
+export interface RecipeReport {
+  title: string;
+  summary: string;
+  servings: number;
+  time_minutes: number;
+  difficulty: string;
+  taste: string;
+  avoid: string[];
+  tools: string[];
+  ingredients_used: string[];
+  missing_ingredients: string[];
+  steps: RecipeStep[];
+  shopping_list: string[];
+  substitutions: RecipeSubstitution[];
+  notes: string[];
+  path: string;
+}
+
+export interface RecipeIndex {
+  total: number;
+  items: RecipeReport[];
+}
+
 export interface DashboardData {
   tasks: {
     total: number;

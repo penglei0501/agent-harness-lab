@@ -55,10 +55,11 @@ npm install
 npm run dev
 ```
 
-打开论文助手：
+打开 Web 助手：
 
 ```text
 http://localhost:3000/zh/papers
+http://localhost:3000/zh/recipes
 ```
 
 常用命令：
@@ -145,6 +146,21 @@ python -m agent_lab recipes list
 recipes/output/
 ```
 
+在 Web 页面查看已生成食谱：
+
+```bash
+cd web
+npm run extract
+npm run dev
+```
+
+然后打开：
+
+```text
+http://localhost:3000/zh/recipes
+http://localhost:3000/en/recipes
+```
+
 ## Life Skill Pack
 
 ```text
@@ -163,7 +179,7 @@ nutrition-awareness      提供基础饮食提醒，但不提供医疗建议
 ├── papers/                  # 本地论文输入与报告输出目录，可按需创建
 ├── recipes/                 # 本地结构化食谱 JSON 报告
 ├── skills/                  # Skill 按需加载示例、Research Skill Pack 和 Life Skill Pack
-├── web/                     # Next.js 可视化学习站和论文助手页面
+├── web/                     # Next.js 可视化学习站、论文助手和食谱页面
 ├── tests/                   # Python 测试
 ├── .github/workflows/       # CI 配置
 ├── requirements.txt         # Python 依赖
@@ -200,10 +216,11 @@ npm run dev
 ```text
 http://localhost:3000/zh/dashboard
 http://localhost:3000/zh/papers
+http://localhost:3000/zh/recipes
 http://localhost:3000/zh/timeline
 ```
 
-`npm run dev` 会先运行 `npm run extract`，把课程文档、任务、事件、技能和论文报告数据提取到 `web/src/data/generated/`。
+`npm run dev` 会先运行 `npm run extract`，把课程文档、任务、事件、技能、论文报告和食谱 JSON 数据提取到 `web/src/data/generated/`。
 
 ## 测试
 

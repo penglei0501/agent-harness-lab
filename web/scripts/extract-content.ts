@@ -11,6 +11,8 @@ import type {
   DashboardTask,
   DashboardTaskDependency,
   DashboardPaperNote,
+  RecipeIndex,
+  RecipeReport,
 } from "../src/types/agent-data";
 import { VERSION_META, VERSION_ORDER, LEARNING_PATH } from "../src/lib/constants";
 
@@ -23,6 +25,7 @@ const TASKS_DIR = path.join(REPO_ROOT, ".tasks");
 const SKILLS_DIR = path.join(REPO_ROOT, "skills");
 const EVENTS_PATH = path.join(REPO_ROOT, ".agent_lab", "events.jsonl");
 const PAPERS_OUTPUT_DIR = path.join(REPO_ROOT, "papers", "output");
+const RECIPES_OUTPUT_DIR = path.join(REPO_ROOT, "recipes", "output");
 const OUT_DIR = path.join(WEB_DIR, "src", "data", "generated");
 
 // Map python filenames to version IDs
@@ -125,6 +128,39 @@ function readJsonFile(filePath: string): any | null {
 
 function repoRelative(filePath: string): string {
   return path.relative(REPO_ROOT, filePath).replaceAll(path.sep, "/");
+}
+
+function asStringList(value: unknown): string[] {
+  return Array.isArray(value) ? value.map(String).filter(Boolean) : [];
+}
+
+function asRecipeSteps(value: unknown): RecipeReport["steps"] {
+  if (!Array.isArray(value)) return [];
+  return value
+    .filter((item) => item && typeof item === "object")
+    .map((item, index) => {
+      const step = item as Record<string, unknown>;
+      return {
+        order: Number(step.order ?? index + 1),
+        title: String(step.title ?? `Step ${index + 1}`),
+        description: String(step.description ?? ""),
+        time_minutes: Number(step.time_minutes ?? 0),
+      };
+    });
+}
+
+function asRecipeSubstitutions(value: unknown): RecipeReport["substitutions"] {
+  if (!Array.isArray(value)) return [];
+  return value
+    .filter((item) => item && typeof item === "object")
+    .map((item) => {
+      const substitution = item as Record<string, unknown>;
+      return {
+        original: String(substitution.original ?? ""),
+        alternative: String(substitution.alternative ?? ""),
+      };
+    })
+    .filter((item) => item.original || item.alternative);
 }
 
 function extractSkillMeta(content: string): { name?: string; description?: string } {
@@ -303,6 +339,48 @@ function buildDashboardData(docs: DocContent[]): DashboardData {
   };
 }
 
+function buildRecipeIndex(): RecipeIndex {
+  const recipeItems: RecipeReport[] = [];
+  if (!fs.existsSync(RECIPES_OUTPUT_DIR)) {
+    return { total: 0, items: [] };
+  }
+
+  const recipeFiles = fs
+    .readdirSync(RECIPES_OUTPUT_DIR)
+    .filter((file) => file.endsWith(".json"))
+    .sort((a, b) => a.localeCompare(b, undefined, { numeric: true }));
+
+  for (const file of recipeFiles) {
+    const filePath = path.join(RECIPES_OUTPUT_DIR, file);
+    const data = readJsonFile(filePath);
+    if (!data || typeof data !== "object") continue;
+    const recipe = data as Record<string, unknown>;
+
+    recipeItems.push({
+      title: String(recipe.title ?? path.basename(file, ".json")),
+      summary: String(recipe.summary ?? ""),
+      servings: Number(recipe.servings ?? 1),
+      time_minutes: Number(recipe.time_minutes ?? 0),
+      difficulty: String(recipe.difficulty ?? "-"),
+      taste: String(recipe.taste ?? "-"),
+      avoid: asStringList(recipe.avoid),
+      tools: asStringList(recipe.tools),
+      ingredients_used: asStringList(recipe.ingredients_used),
+      missing_ingredients: asStringList(recipe.missing_ingredients),
+      steps: asRecipeSteps(recipe.steps),
+      shopping_list: asStringList(recipe.shopping_list),
+      substitutions: asRecipeSubstitutions(recipe.substitutions),
+      notes: asStringList(recipe.notes),
+      path: repoRelative(filePath),
+    });
+  }
+
+  return {
+    total: recipeItems.length,
+    items: recipeItems.reverse(),
+  };
+}
+
 function readJsonLine(line: string): any | null {
   try {
     return JSON.parse(line);
@@ -467,6 +545,11 @@ function main() {
   fs.writeFileSync(dashboardPath, JSON.stringify(dashboard, null, 2));
   console.log(`  Wrote ${dashboardPath}`);
 
+  const recipes = buildRecipeIndex();
+  const recipesPath = path.join(OUT_DIR, "recipes.json");
+  fs.writeFileSync(recipesPath, JSON.stringify(recipes, null, 2));
+  console.log(`  Wrote ${recipesPath}`);
+
   // Summary
   console.log("\nExtraction complete:");
   console.log(`  ${versions.length} versions`);
@@ -476,6 +559,7 @@ function main() {
   console.log(`  ${dashboard.skills.total} skills`);
   console.log(`  ${dashboard.events.total} events`);
   console.log(`  ${dashboard.papers?.total ?? 0} paper notes`);
+  console.log(`  ${recipes.total} recipe reports`);
   for (const v of versions) {
     console.log(
       `    ${v.id}: ${v.loc} LOC, ${v.tools.length} tools, ${v.classes.length} classes, ${v.functions.length} functions`
