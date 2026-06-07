@@ -1,6 +1,7 @@
 import { FileJson, Terminal } from "lucide-react";
 import { Card, CardHeader, CardTitle } from "@/components/ui/card";
 import { RecipeCard } from "@/components/recipes/recipe-card";
+import { RecipeGenerator } from "@/components/recipes/recipe-generator";
 import { getTranslations } from "@/lib/i18n-server";
 import type { RecipeIndex } from "@/types/agent-data";
 import recipesJson from "@/data/generated/recipes.json";
@@ -35,12 +36,31 @@ export default async function RecipesPage({
     notes: t("notes"),
     path: t("path"),
   };
+  const generatorLabels = {
+    title: t("generator_title"),
+    description: t("generator_desc"),
+    ingredients: t("form_ingredients"),
+    servings: t("form_servings"),
+    time: t("form_time"),
+    taste: t("form_taste"),
+    avoid: t("form_avoid"),
+    tools: t("form_tools"),
+    submit: t("form_submit"),
+    generating: t("form_generating"),
+    success: t("form_success"),
+    error: t("form_error"),
+    saved_to: t("saved_to"),
+  };
 
   return (
     <div>
       <div className="mb-8">
         <h1 className="text-3xl font-bold">{t("title")}</h1>
         <p className="mt-2 max-w-3xl text-[var(--color-text-secondary)]">{t("subtitle")}</p>
+      </div>
+
+      <div className="mb-6">
+        <RecipeGenerator labels={generatorLabels} cardLabels={labels} />
       </div>
 
       <div className="mb-6 grid gap-4 lg:grid-cols-2">

@@ -128,6 +128,14 @@ research-report-writing   结构化科研阅读报告生成
 
 食谱助手是生活知识扩展。和论文助手不同，食谱助手不输出 Markdown，而是输出结构化 JSON，方便后续 Web 页面渲染成菜谱卡片、食材标签、步骤时间线、购物清单和替代方案。
 
+Web 页面可以直接输入食材并生成菜谱：
+
+```text
+http://localhost:3000/zh/recipes
+```
+
+网页端会调用本地 Next.js API，再由 API 调用 `agent_lab recipes suggest` 生成 JSON 菜谱。
+
 ```bash
 python -m agent_lab recipes suggest \
   --ingredients "egg,tomato,rice" \

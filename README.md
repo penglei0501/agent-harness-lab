@@ -129,6 +129,14 @@ These skills live in `skills/` and show how an agent can load domain knowledge o
 
 The recipe assistant is a life knowledge extension. Unlike paper reports, recipe output is stored as structured JSON so the Web UI can later render it as cards, ingredient tags, step timelines, shopping lists, and substitution panels.
 
+The Web page can generate recipes directly from browser input:
+
+```text
+http://localhost:3000/zh/recipes
+```
+
+The browser calls a local Next.js API route, and the API route invokes `agent_lab recipes suggest` to generate the JSON recipe report.
+
 ```bash
 python -m agent_lab recipes suggest \
   --ingredients "egg,tomato,rice" \
