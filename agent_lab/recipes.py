@@ -261,54 +261,148 @@ def _basic_missing_ingredients(ingredients: list[str], avoid: list[str], *, zh: 
     return missing
 
 
+def _step_times(total_minutes: int, weights: list[int]) -> list[int]:
+    total = max(len(weights), total_minutes)
+    weight_sum = sum(weights)
+    times = [max(1, round(total * weight / weight_sum)) for weight in weights]
+    delta = total - sum(times)
+    index = len(times) - 1
+    while delta != 0:
+        if delta > 0:
+            times[index] += 1
+            delta -= 1
+        elif times[index] > 1:
+            times[index] -= 1
+            delta += 1
+        index = (index - 1) % len(times)
+    return times
+
+
+def _make_steps(specs: list[tuple[str, str, int]], total_minutes: int) -> list[RecipeStep]:
+    times = _step_times(total_minutes, [spec[2] for spec in specs])
+    return [
+        RecipeStep(
+            order=index + 1,
+            title=title,
+            description=description,
+            time_minutes=times[index],
+        )
+        for index, (title, description, _) in enumerate(specs)
+    ]
+
+
 def _build_steps(title: str, time_minutes: int, tools: list[str], *, zh: bool) -> list[RecipeStep]:
-    prep_time = max(3, min(8, time_minutes // 4))
-    cook_time = max(6, min(15, time_minutes // 2))
-    finish_time = max(2, time_minutes - prep_time - cook_time)
     primary_tool = tools[0] if tools else ("炒锅" if zh else "pan")
 
     if zh:
-        return [
-            RecipeStep(
-                order=1,
-                title="处理食材",
-                description="清洗食材并切成适合入口的大小，肉类尽量切薄，方便在短时间内成熟。",
-                time_minutes=prep_time,
-            ),
-            RecipeStep(
-                order=2,
-                title=f"用{primary_tool}烹饪",
-                description=f"先热{primary_tool}并加入少量油，再按不易熟到易熟的顺序下锅翻炒，直到食材断生并出香味。",
-                time_minutes=cook_time,
-            ),
-            RecipeStep(
-                order=3,
-                title="调味装盘",
-                description=f"根据口味逐步调味，收汁或翻匀后装盘，确保成品符合「{title}」的风味。",
-                time_minutes=finish_time,
-            ),
-        ]
+        zh_specs: dict[str, list[tuple[str, str, int]]] = {
+            "番茄鸡蛋盖饭": [
+                ("处理食材", "番茄切块，鸡蛋打散，米饭提前盛好；如果有葱花，可以留到最后点缀。", 4),
+                ("先炒鸡蛋", f"热{primary_tool}加少量油，倒入蛋液，炒到刚凝固就盛出，保留嫩度。", 4),
+                ("炒番茄出汁", "锅中补一点油，加入番茄和少量盐，中火翻炒到番茄变软并出汁。", 5),
+                ("回锅调味", "倒回鸡蛋，加少量生抽或盐调味，快速翻匀，让鸡蛋裹上番茄汁。", 4),
+                ("盖饭装盘", "把番茄鸡蛋浇在米饭上，撒葱花或香菜，趁热食用。", 3),
+            ],
+            "番茄蛋炒饭": [
+                ("处理食材", "番茄切小丁，鸡蛋打散，米饭提前打散，避免下锅后结块。", 4),
+                ("炒鸡蛋", f"热{primary_tool}加油，倒入蛋液炒散，鸡蛋刚定型后盛出备用。", 4),
+                ("炒番茄", "用锅中余油炒番茄丁，加入少量盐，炒到番茄出汁但仍保留颗粒感。", 5),
+                ("下米饭", "加入米饭压散翻炒，让米饭均匀吸收番茄汁。", 5),
+                ("回蛋调味", "倒回鸡蛋，加入生抽或盐调味，翻炒到米饭粒粒分明后出锅。", 4),
+            ],
+            "番茄鸡蛋汤泡饭": [
+                ("处理食材", "番茄切块，鸡蛋打散，米饭盛入碗中备用。", 3),
+                ("炒番茄底味", f"热{primary_tool}加少量油，炒番茄到变软出汁，这一步决定汤底酸甜味。", 5),
+                ("煮汤打蛋花", "加入热水煮开，转小火淋入蛋液，形成蛋花后用盐调味。", 6),
+                ("浇入米饭", "把番茄蛋花汤浇到米饭上，撒葱花，按口味加一点香油。", 3),
+            ],
+            "番茄鸡蛋面": [
+                ("处理食材", "番茄切块，鸡蛋打散，面条提前准备好。", 3),
+                ("炒番茄鸡蛋浇头", f"用{primary_tool}先炒鸡蛋盛出，再炒番茄出汁，最后倒回鸡蛋调味。", 7),
+                ("煮面", "另加水煮面，煮到面条刚熟后捞出，保留少量面汤。", 6),
+                ("组合装碗", "把番茄鸡蛋浇头盖到面上，加入少量面汤调整浓稠度。", 3),
+            ],
+            "番茄鸡蛋拌面": [
+                ("处理食材", "番茄切丁，鸡蛋打散，面条煮前先准备一碗调味汁。", 4),
+                ("炒浓番茄蛋酱", f"用{primary_tool}炒蛋盛出，再把番茄炒到浓稠，倒回鸡蛋并调味。", 8),
+                ("煮面过水", "面条煮熟后捞出，想更爽口可以快速过凉水。", 5),
+                ("拌匀装盘", "把番茄蛋酱倒在面上拌匀，最后撒葱花或香菜。", 3),
+            ],
+            "番茄蛋花汤面": [
+                ("处理食材", "番茄切块，鸡蛋打散，面条准备好。", 3),
+                ("煮番茄汤底", f"用{primary_tool}炒软番茄后加水煮开，让汤底有明显番茄味。", 6),
+                ("下面条", "放入面条煮到刚熟，期间用筷子拨散防止粘连。", 6),
+                ("淋蛋调味", "转小火淋入蛋液形成蛋花，加盐或生抽调味后出锅。", 4),
+            ],
+            "土豆牛肉小炒": [
+                ("处理食材", "土豆切薄片或细条，牛肉逆纹切薄片，辣椒切段；土豆切好后冲掉表面淀粉。", 5),
+                ("腌牛肉", "牛肉加少量生抽、油和一点淀粉抓匀，静置几分钟，让口感更嫩。", 4),
+                ("快炒牛肉", f"热{primary_tool}加油，大火快炒牛肉到刚变色，马上盛出避免变老。", 4),
+                ("炒土豆辣椒", "锅中补油，下土豆翻炒到边缘微透明，再加入辣椒炒出香味。", 6),
+                ("回锅合炒", "倒回牛肉，加盐或生抽调味，快速翻匀后出锅。", 3),
+            ],
+            "土豆牛肉焖饭": [
+                ("处理食材", "土豆切小块，牛肉切片或小丁，大米淘洗后沥干。", 5),
+                ("炒香牛肉土豆", f"用{primary_tool}或炒锅先把牛肉炒变色，再加入土豆和生抽炒出香味。", 6),
+                ("加入米和水", "把米、牛肉和土豆放入电饭煲，水量比平时煮饭略少一点。", 4),
+                ("焖煮", "启动煮饭程序，焖到米饭成熟；完成后再保温几分钟。", 12),
+                ("拌匀出锅", "开盖后把土豆牛肉和米饭拌匀，按口味补盐或葱花。", 3),
+            ],
+            "土豆牛肉汤": [
+                ("处理食材", "土豆切块，牛肉切薄片或小块，辣椒按口味决定是否加入。", 5),
+                ("煎炒牛肉", f"用{primary_tool}少油把牛肉炒到变色，加入土豆略炒。", 5),
+                ("加水炖煮", "加入热水，煮到土豆变软，汤底变得浓一些。", 12),
+                ("调味收尾", "用盐、生抽或胡椒调味，最后撒葱花或香菜。", 3),
+            ],
+        }
+        if title in zh_specs:
+            return _make_steps(zh_specs[title], time_minutes)
 
-    return [
-        RecipeStep(
-            order=1,
-            title="Prepare ingredients",
-            description="Wash, cut, and portion the available ingredients before heating the pan.",
-            time_minutes=prep_time,
-        ),
-        RecipeStep(
-            order=2,
-            title=f"Cook with {primary_tool}",
-            description=f"Use the {primary_tool} to cook the main ingredients until fragrant and fully heated.",
-            time_minutes=cook_time,
-        ),
-        RecipeStep(
-            order=3,
-            title="Season and plate",
-            description=f"Adjust seasoning, plate the dish, and check that the final flavor matches {title}.",
-            time_minutes=finish_time,
-        ),
-    ]
+        return _make_steps(
+            [
+                ("处理食材", "清洗食材并切成适合入口的大小，肉类尽量切薄，方便在短时间内成熟。", 4),
+                ("建立底味", f"先热{primary_tool}并加入少量油，放入更耐熟的食材翻炒出香味。", 5),
+                ("合并主料", "加入剩余食材，按不易熟到易熟的顺序翻炒或焖煮到断生。", 6),
+                ("调味装盘", f"根据口味逐步调味，收汁或翻匀后装盘，确保成品符合「{title}」的风味。", 3),
+            ],
+            time_minutes,
+        )
+
+    en_specs: dict[str, list[tuple[str, str, int]]] = {
+        "Tomato Egg Rice Bowl": [
+            ("Prep ingredients", "Cut the tomato into chunks, beat the eggs, and portion the rice into a bowl.", 4),
+            ("Scramble eggs", f"Heat the {primary_tool} with oil, cook the eggs until just set, then remove them.", 4),
+            ("Cook tomato sauce", "Cook the tomato with a pinch of salt until softened and juicy.", 5),
+            ("Combine and season", "Return the eggs, season with soy sauce or salt, and fold gently.", 4),
+            ("Top the rice", "Spoon the tomato eggs over rice and finish with scallion if available.", 3),
+        ],
+        "Tomato Egg Fried Rice": [
+            ("Prep ingredients", "Dice the tomato, beat the eggs, and break up the rice before cooking.", 4),
+            ("Scramble eggs", f"Cook the eggs in the {primary_tool} until just set, then remove them.", 4),
+            ("Cook tomato", "Cook tomato until juicy but not fully dissolved.", 5),
+            ("Fry rice", "Add rice and stir-fry until evenly coated with tomato juices.", 5),
+            ("Finish", "Return eggs, season, and stir-fry until the grains separate.", 4),
+        ],
+        "Potato Beef Stir-Fry": [
+            ("Prep ingredients", "Slice potato thinly, cut beef across the grain, and cut any peppers into strips.", 5),
+            ("Marinate beef", "Toss beef with soy sauce, oil, and a little starch for a few minutes.", 4),
+            ("Sear beef", f"Use the hot {primary_tool} to sear beef until just browned, then remove it.", 4),
+            ("Cook potato", "Stir-fry potato until the edges turn slightly translucent, then add peppers.", 6),
+            ("Combine", "Return beef, season quickly, and toss everything together before serving.", 3),
+        ],
+    }
+    if title in en_specs:
+        return _make_steps(en_specs[title], time_minutes)
+
+    return _make_steps(
+        [
+            ("Prepare ingredients", "Wash, cut, and portion the available ingredients before heating the pan.", 4),
+            ("Build flavor", f"Heat the {primary_tool}, add oil, and cook the slower-cooking ingredients first.", 5),
+            ("Cook together", "Add the remaining ingredients and cook until everything is fully heated and tender.", 6),
+            ("Season and serve", f"Adjust seasoning, plate the dish, and check that the final flavor matches {title}.", 3),
+        ],
+        time_minutes,
+    )
 
 
 def _build_summary(

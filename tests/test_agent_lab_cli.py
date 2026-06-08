@@ -285,7 +285,14 @@ def test_suggest_recipe_writes_structured_json(tmp_path: Path) -> None:
     data = json.loads(report.path.read_text(encoding="utf-8"))
     assert data["title"] == "Tomato Egg Rice Bowl"
     assert data["servings"] == 1
-    assert data["steps"][0]["title"] == "Prepare ingredients"
+    assert [step["title"] for step in data["steps"]] == [
+        "Prep ingredients",
+        "Scramble eggs",
+        "Cook tomato sauce",
+        "Combine and season",
+        "Top the rice",
+    ]
+    assert "Spoon the tomato eggs over rice" in data["steps"][-1]["description"]
     assert data["shopping_list"]
 
     events = load_events(events_path)
@@ -311,8 +318,17 @@ def test_suggest_recipe_handles_chinese_inputs_and_serving_tools(tmp_path: Path)
     assert report.summary.startswith("这是一道约 20 分钟完成")
     assert report.difficulty == "简单"
     assert report.tools == ["炒锅"]
-    assert report.steps[1].title == "用炒锅烹饪"
-    assert "盘子" not in report.steps[1].description
+    assert [step.title for step in report.steps] == [
+        "处理食材",
+        "腌牛肉",
+        "快炒牛肉",
+        "炒土豆辣椒",
+        "回锅合炒",
+    ]
+    assert "盘子" not in " ".join(step.description for step in report.steps)
+    assert "牛肉逆纹切薄片" in report.steps[0].description
+    assert "马上盛出避免变老" in report.steps[2].description
+    assert sum(step.time_minutes for step in report.steps) == 20
     assert "盐" in report.missing_ingredients
     assert "食用油" in report.missing_ingredients
     assert "生抽" in report.shopping_list
@@ -335,7 +351,13 @@ def test_suggest_recipe_recommends_tools_when_not_provided(tmp_path: Path) -> No
 
     assert report.title == "番茄鸡蛋面"
     assert report.tools == ["汤锅"]
-    assert report.steps[1].title == "用汤锅烹饪"
+    assert [step.title for step in report.steps] == [
+        "处理食材",
+        "炒番茄鸡蛋浇头",
+        "煮面",
+        "组合装碗",
+    ]
+    assert "面条刚熟后捞出" in report.steps[2].description
 
 
 def test_suggest_recipe_options_generates_multiple_reports(tmp_path: Path) -> None:
@@ -359,6 +381,14 @@ def test_suggest_recipe_options_generates_multiple_reports(tmp_path: Path) -> No
 
     data = json.loads(reports[0].path.read_text(encoding="utf-8"))
     assert data["recommendation_reason"] == "最快，适合一人食或工作日晚餐。"
+    assert [step["title"] for step in data["steps"]] == [
+        "处理食材",
+        "先炒鸡蛋",
+        "炒番茄出汁",
+        "回锅调味",
+        "盖饭装盘",
+    ]
+    assert "浇在米饭上" in data["steps"][-1]["description"]
 
     events = load_events(events_path)
     assert [event.event_type for event in events] == [
