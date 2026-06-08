@@ -93,6 +93,7 @@ npm run dev
 打开 Web 助手：
 
 ```text
+http://localhost:3000/zh/demo
 http://localhost:3000/zh/papers
 http://localhost:3000/zh/recipes
 ```
@@ -222,6 +223,7 @@ npm run dev
 常用页面：
 
 ```text
+http://localhost:3000/zh/demo
 http://localhost:3000/zh/dashboard
 http://localhost:3000/zh/papers
 http://localhost:3000/zh/recipes

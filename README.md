@@ -96,6 +96,7 @@ npm run dev
 Open the Web assistants:
 
 ```text
+http://localhost:3000/zh/demo
 http://localhost:3000/zh/papers
 http://localhost:3000/zh/recipes
 ```
@@ -277,6 +278,8 @@ npm run dev
 Common routes:
 
 ```text
+http://localhost:3000/en/demo
+http://localhost:3000/zh/demo
 http://localhost:3000/en/dashboard
 http://localhost:3000/zh/dashboard
 http://localhost:3000/en/papers

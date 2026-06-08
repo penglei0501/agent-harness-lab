@@ -8,6 +8,7 @@ import { useState, useEffect } from "react";
 import { cn } from "@/lib/utils";
 
 const NAV_ITEMS = [
+  { key: "demo", href: "/demo" },
   { key: "dashboard", href: "/dashboard" },
   { key: "papers", href: "/papers" },
   { key: "recipes", href: "/recipes" },
