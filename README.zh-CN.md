@@ -98,6 +98,14 @@ http://localhost:3000/zh/papers
 http://localhost:3000/zh/recipes
 ```
 
+Demo 截图可以保存为：
+
+```text
+web/public/demo/dashboard.png
+web/public/demo/papers.png
+web/public/demo/recipes.png
+```
+
 常用命令：
 
 ```bash

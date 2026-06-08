@@ -101,6 +101,14 @@ http://localhost:3000/zh/papers
 http://localhost:3000/zh/recipes
 ```
 
+Demo screenshots can be saved as:
+
+```text
+web/public/demo/dashboard.png
+web/public/demo/papers.png
+web/public/demo/recipes.png
+```
+
 Useful local commands:
 
 ```bash

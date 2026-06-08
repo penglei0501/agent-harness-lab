@@ -1,4 +1,6 @@
 import Link from "next/link";
+import * as fs from "fs";
+import * as path from "path";
 import {
   BookOpen,
   ChefHat,
@@ -11,6 +13,13 @@ import {
 } from "lucide-react";
 import { Card, CardHeader, CardTitle } from "@/components/ui/card";
 import { getTranslations } from "@/lib/i18n-server";
+
+const WEB_ROOT = process.cwd();
+const DEMO_IMAGE_DIR = path.join(WEB_ROOT, "public", "demo");
+
+function demoImageExists(filename: string) {
+  return fs.existsSync(path.join(DEMO_IMAGE_DIR, filename));
+}
 
 function CommandBlock({ command }: { command: string }) {
   return (
@@ -97,6 +106,23 @@ export default async function DemoPage({
       command: "cd web\nnpm run dev",
     },
   ];
+  const screenshots = [
+    {
+      title: t("screenshot_dashboard_title"),
+      description: t("screenshot_dashboard_desc"),
+      filename: "dashboard.png",
+    },
+    {
+      title: t("screenshot_papers_title"),
+      description: t("screenshot_papers_desc"),
+      filename: "papers.png",
+    },
+    {
+      title: t("screenshot_recipes_title"),
+      description: t("screenshot_recipes_desc"),
+      filename: "recipes.png",
+    },
+  ];
 
   return (
     <div>
@@ -128,6 +154,47 @@ export default async function DemoPage({
             </Card>
           </Link>
         ))}
+      </section>
+
+      <section className="mb-8">
+        <div className="mb-4">
+          <h2 className="text-2xl font-bold">{t("screenshots_title")}</h2>
+          <p className="mt-2 max-w-3xl text-sm leading-6 text-zinc-500 dark:text-zinc-400">
+            {t("screenshots_desc")}
+          </p>
+        </div>
+        <div className="grid gap-4 lg:grid-cols-3">
+          {screenshots.map((screenshot) => {
+            const exists = demoImageExists(screenshot.filename);
+            return (
+              <Card key={screenshot.filename} className="overflow-hidden p-0">
+                <div className="aspect-[16/10] border-b border-zinc-100 bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-950">
+                  {exists ? (
+                    <img
+                      src={`/demo/${screenshot.filename}`}
+                      alt={screenshot.title}
+                      className="h-full w-full object-cover object-left-top"
+                    />
+                  ) : (
+                    <div className="flex h-full flex-col items-center justify-center px-6 text-center">
+                      <FileText size={28} className="mb-3 text-zinc-400" />
+                      <p className="text-sm font-medium">{t("screenshot_missing")}</p>
+                      <p className="mt-1 font-mono text-xs text-zinc-500 dark:text-zinc-400">
+                        web/public/demo/{screenshot.filename}
+                      </p>
+                    </div>
+                  )}
+                </div>
+                <div className="p-5">
+                  <h3 className="text-sm font-semibold">{screenshot.title}</h3>
+                  <p className="mt-2 text-sm leading-6 text-zinc-500 dark:text-zinc-400">
+                    {screenshot.description}
+                  </p>
+                </div>
+              </Card>
+            );
+          })}
+        </div>
       </section>
 
       <section className="mb-8 grid gap-6 lg:grid-cols-[0.95fr_1.05fr]">
