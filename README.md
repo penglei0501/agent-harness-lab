@@ -127,7 +127,7 @@ These skills live in `skills/` and show how an agent can load domain knowledge o
 
 ## Smart Recipe Assistant
 
-The recipe assistant is a life knowledge extension. Unlike paper reports, recipe output is stored as structured JSON so the Web UI can later render it as cards, ingredient tags, step timelines, shopping lists, and substitution panels.
+The recipe assistant is a life knowledge extension. Unlike paper reports, recipe output is stored as structured JSON so the Web UI can later render it as cards, ingredient tags, step timelines, shopping lists, and substitution panels. Users provide ingredients and constraints; the assistant recommends suitable cooking tools automatically.
 
 The Web page can generate recipes directly from browser input:
 
@@ -143,8 +143,7 @@ python -m agent_lab recipes suggest \
   --servings 1 \
   --time 20 \
   --taste "light" \
-  --avoid "spicy" \
-  --tools "pan"
+  --avoid "spicy"
 
 python -m agent_lab recipes list
 ```

@@ -14,7 +14,6 @@ interface RecipeGeneratorLabels {
   time: string;
   taste: string;
   avoid: string;
-  tools: string;
   submit: string;
   generating: string;
   success: string;
@@ -57,7 +56,6 @@ export function RecipeGenerator({ labels, cardLabels }: RecipeGeneratorProps) {
   const [timeMinutes, setTimeMinutes] = useState(20);
   const [taste, setTaste] = useState("light");
   const [avoid, setAvoid] = useState("spicy");
-  const [tools, setTools] = useState("pan");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [result, setResult] = useState<RecipeReport | null>(null);
@@ -80,7 +78,6 @@ export function RecipeGenerator({ labels, cardLabels }: RecipeGeneratorProps) {
           time_minutes: timeMinutes,
           taste,
           avoid,
-          tools,
         }),
       });
       const payload = (await response.json()) as RecipeResponse;
@@ -151,24 +148,14 @@ export function RecipeGenerator({ labels, cardLabels }: RecipeGeneratorProps) {
             </label>
           </div>
 
-          <div className="grid gap-4 md:grid-cols-2">
-            <label className="grid gap-2 text-sm font-medium">
-              {labels.avoid}
-              <input
-                className={inputClass}
-                value={avoid}
-                onChange={(event) => setAvoid(event.target.value)}
-              />
-            </label>
-            <label className="grid gap-2 text-sm font-medium">
-              {labels.tools}
-              <input
-                className={inputClass}
-                value={tools}
-                onChange={(event) => setTools(event.target.value)}
-              />
-            </label>
-          </div>
+          <label className="grid gap-2 text-sm font-medium">
+            {labels.avoid}
+            <input
+              className={inputClass}
+              value={avoid}
+              onChange={(event) => setAvoid(event.target.value)}
+            />
+          </label>
 
           <div className="flex flex-wrap items-center gap-3">
             <button

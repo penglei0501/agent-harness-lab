@@ -126,7 +126,7 @@ research-report-writing   结构化科研阅读报告生成
 
 ## 智能食谱助手
 
-食谱助手是生活知识扩展。和论文助手不同，食谱助手不输出 Markdown，而是输出结构化 JSON，方便后续 Web 页面渲染成菜谱卡片、食材标签、步骤时间线、购物清单和替代方案。
+食谱助手是生活知识扩展。和论文助手不同，食谱助手不输出 Markdown，而是输出结构化 JSON，方便后续 Web 页面渲染成菜谱卡片、食材标签、步骤时间线、购物清单和替代方案。用户只需要输入食材和约束，系统会自动推荐合适厨具。
 
 Web 页面可以直接输入食材并生成菜谱：
 
@@ -142,8 +142,7 @@ python -m agent_lab recipes suggest \
   --servings 1 \
   --time 20 \
   --taste "light" \
-  --avoid "spicy" \
-  --tools "pan"
+  --avoid "spicy"
 
 python -m agent_lab recipes list
 ```

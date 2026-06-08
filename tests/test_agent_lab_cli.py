@@ -323,6 +323,21 @@ def test_suggest_recipe_handles_chinese_inputs_and_serving_tools(tmp_path: Path)
     assert data["steps"][0]["title"] == "处理食材"
 
 
+def test_suggest_recipe_recommends_tools_when_not_provided(tmp_path: Path) -> None:
+    report = suggest_recipe(
+        "鸡蛋,番茄,面条",
+        servings=1,
+        time_minutes=15,
+        taste="清淡",
+        output_dir=tmp_path,
+        events_path=tmp_path / "events.jsonl",
+    )
+
+    assert report.title == "番茄鸡蛋面"
+    assert report.tools == ["汤锅"]
+    assert report.steps[1].title == "用汤锅烹饪"
+
+
 def test_cli_recipes_suggest_and_list(tmp_path: Path, capsys) -> None:
     events_path = tmp_path / "events.jsonl"
     base_args = [

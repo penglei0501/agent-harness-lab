@@ -44,7 +44,6 @@ export default async function RecipesPage({
     time: t("form_time"),
     taste: t("form_taste"),
     avoid: t("form_avoid"),
-    tools: t("form_tools"),
     submit: t("form_submit"),
     generating: t("form_generating"),
     success: t("form_success"),

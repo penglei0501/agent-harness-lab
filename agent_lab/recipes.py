@@ -72,7 +72,29 @@ def _is_zh(ingredients: list[str], taste: str, avoid: list[str], tools: list[str
     return _contains_cjk([*ingredients, taste, *avoid, *tools])
 
 
-def _normalize_cooking_tools(tools: list[str], *, zh: bool) -> list[str]:
+def _recommend_cooking_tools(ingredients: list[str], *, zh: bool) -> list[str]:
+    has_noodle = _has_any(ingredients, {"noodle", "面", "面条"})
+    has_potato = _has_any(ingredients, {"potato", "土豆", "马铃薯"})
+    has_beef = _has_any(ingredients, {"beef", "牛肉"})
+    has_raw_rice = _has_any(ingredients, {"raw rice", "uncooked rice", "生米", "大米"})
+
+    if zh:
+        if has_raw_rice:
+            return ["电饭煲"]
+        if has_noodle:
+            return ["汤锅"]
+        if has_potato and has_beef:
+            return ["炒锅"]
+        return ["炒锅"]
+
+    if has_raw_rice:
+        return ["rice cooker"]
+    if has_noodle:
+        return ["pot"]
+    return ["pan"]
+
+
+def _normalize_cooking_tools(tools: list[str], ingredients: list[str], *, zh: bool) -> list[str]:
     cooking_keywords = {
         "pan",
         "skillet",
@@ -105,7 +127,7 @@ def _normalize_cooking_tools(tools: list[str], *, zh: bool) -> list[str]:
 
     if cooking_tools:
         return cooking_tools
-    return ["炒锅" if zh else "pan"]
+    return _recommend_cooking_tools(ingredients, zh=zh)
 
 
 def _avoid_has(avoid: list[str], keywords: set[str]) -> bool:
@@ -290,7 +312,7 @@ def suggest_recipe(
     avoid_items = parse_list(avoid)
     raw_tool_items = parse_list(tools)
     zh = _is_zh(ingredient_items, taste, avoid_items, raw_tool_items)
-    tool_items = _normalize_cooking_tools(raw_tool_items, zh=zh)
+    tool_items = _normalize_cooking_tools(raw_tool_items, ingredient_items, zh=zh)
     safe_servings = max(1, servings)
     safe_time = max(5, time_minutes)
     title = _pick_recipe_title(ingredient_items, zh=zh)

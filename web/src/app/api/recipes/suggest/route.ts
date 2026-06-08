@@ -70,7 +70,6 @@ export async function POST(request: Request) {
   const time = cleanPositiveInt(body.time_minutes ?? body.time, 20, 5, 240);
   const taste = cleanText(body.taste, "balanced") || "balanced";
   const avoid = cleanText(body.avoid);
-  const tools = cleanText(body.tools);
 
   await fs.mkdir(RECIPES_OUTPUT_DIR, { recursive: true });
 
@@ -90,7 +89,6 @@ export async function POST(request: Request) {
     taste,
   ];
   if (avoid) args.push("--avoid", avoid);
-  if (tools) args.push("--tools", tools);
 
   let stdout = "";
   try {
