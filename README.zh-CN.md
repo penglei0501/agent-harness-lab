@@ -34,6 +34,41 @@ Harness = Tools
 - Life Skill Pack 沉淀食谱规划、烹饪步骤和基础营养提醒能力。
 - pytest、TypeScript check、Next.js build 和 GitHub Actions 提供基础质量保障。
 
+## 项目结构
+
+```text
+.
+├── agents/                  # 12 个递进式 Agent Harness 示例 + 综合实现
+├── agent_lab/               # 个人扩展的 Agent Harness Lab CLI
+├── docs/                    # 中英文课程内容源
+├── papers/                  # 本地论文输入与报告输出目录，可按需创建
+├── recipes/                 # 本地结构化食谱 JSON 报告
+├── skills/                  # Skill 按需加载示例、Research Skill Pack 和 Life Skill Pack
+├── web/                     # Next.js 可视化学习站、论文助手和食谱页面
+├── tests/                   # Python 测试
+├── .github/workflows/       # CI 配置
+├── requirements.txt         # Python 依赖
+└── README.md                # 英文说明
+```
+
+## 学习路径
+
+| Session | Topic | 展示内容 |
+| --- | --- | --- |
+| s01 | Agent Loop | 最小模型-工具循环 |
+| s02 | Tool Use | 工具注册与 dispatch map |
+| s03 | TodoWrite | 多步任务规划 |
+| s04 | Subagent | 子任务上下文隔离 |
+| s05 | Skills | 知识按需加载 |
+| s06 | Context Compact | 长上下文压缩 |
+| s07 | Task System | 文件持久化任务图 |
+| s08 | Background Tasks | 慢任务后台执行 |
+| s09 | Agent Teams | 持久队友与异步邮箱 |
+| s10 | Team Protocols | request-response 协议 |
+| s11 | Autonomous Agents | 自主扫描和认领任务 |
+| s12 | Worktree Isolation | task 与 git worktree 绑定 |
+| s_full | Full Reference | 多机制综合参考实现 |
+
 ## 快速开始
 
 克隆仓库并安装 Python 依赖：
@@ -176,41 +211,6 @@ recipe-planning          根据食材和约束生成可执行食谱方案
 cooking-instructions     生成清晰、有时间估计、便于厨房执行的步骤
 nutrition-awareness      提供基础饮食提醒，但不提供医疗建议
 ```
-
-## 项目结构
-
-```text
-.
-├── agents/                  # 12 个递进式 Agent Harness 示例 + 综合实现
-├── agent_lab/               # 个人扩展的 Agent Harness Lab CLI
-├── docs/                    # 中英文课程内容源
-├── papers/                  # 本地论文输入与报告输出目录，可按需创建
-├── recipes/                 # 本地结构化食谱 JSON 报告
-├── skills/                  # Skill 按需加载示例、Research Skill Pack 和 Life Skill Pack
-├── web/                     # Next.js 可视化学习站、论文助手和食谱页面
-├── tests/                   # Python 测试
-├── .github/workflows/       # CI 配置
-├── requirements.txt         # Python 依赖
-└── README.md                # 英文说明
-```
-
-## 学习路径
-
-| Session | Topic | 展示内容 |
-| --- | --- | --- |
-| s01 | Agent Loop | 最小模型-工具循环 |
-| s02 | Tool Use | 工具注册与 dispatch map |
-| s03 | TodoWrite | 多步任务规划 |
-| s04 | Subagent | 子任务上下文隔离 |
-| s05 | Skills | 知识按需加载 |
-| s06 | Context Compact | 长上下文压缩 |
-| s07 | Task System | 文件持久化任务图 |
-| s08 | Background Tasks | 慢任务后台执行 |
-| s09 | Agent Teams | 持久队友与异步邮箱 |
-| s10 | Team Protocols | request-response 协议 |
-| s11 | Autonomous Agents | 自主扫描和认领任务 |
-| s12 | Worktree Isolation | task 与 git worktree 绑定 |
-| s_full | Full Reference | 多机制综合参考实现 |
 
 ## Web 页面
 

@@ -35,6 +35,43 @@ The model reasons and decides. The harness provides the observable, executable, 
 - Subagent, context compaction, background task, multi-agent coordination, and worktree isolation examples.
 - pytest, TypeScript checks, Next.js build, and GitHub Actions for basic quality coverage.
 
+## Repository Structure
+
+```text
+.
+├── agents/                  # 12 progressive Agent Harness examples + full reference
+├── agent_lab/               # Project-specific Agent Harness Lab CLI
+├── docs/                    # English and Chinese learning content
+├── papers/                  # Local paper input and report output directories
+├── recipes/                 # Local structured recipe JSON reports
+├── skills/                  # On-demand skills, Research Skill Pack, and Life Skill Pack
+├── web/                     # Next.js learning site, paper assistant, and recipe page
+├── tests/                   # Python tests
+├── data_pipeline/           # Data pipeline practice module
+├── my_package/              # Python package practice module
+├── .github/workflows/       # CI workflows
+├── requirements.txt         # Python dependencies
+└── README.zh-CN.md          # Chinese documentation
+```
+
+## Learning Path
+
+| Session | Topic | What It Demonstrates |
+| --- | --- | --- |
+| s01 | Agent Loop | Minimal model-tool loop |
+| s02 | Tool Use | Tool registry and dispatch map |
+| s03 | TodoWrite | Multi-step task planning |
+| s04 | Subagent | Subtask context isolation |
+| s05 | Skills | On-demand knowledge loading |
+| s06 | Context Compact | Long-context compression |
+| s07 | Task System | File-persisted task graph |
+| s08 | Background Tasks | Slow commands in the background |
+| s09 | Agent Teams | Persistent teammates and async mailboxes |
+| s10 | Team Protocols | Request-response protocols |
+| s11 | Autonomous Agents | Autonomous task scanning and claiming |
+| s12 | Worktree Isolation | Task-bound git worktree execution |
+| s_full | Full Reference | Combined reference implementation |
+
 ## Quick Start
 
 Clone the repository and set up Python dependencies:
@@ -173,43 +210,6 @@ recipe-planning          Practical recipe planning from ingredients and constrai
 cooking-instructions     Clear, timed, kitchen-friendly cooking steps
 nutrition-awareness      Basic dietary-awareness notes without medical advice
 ```
-
-## Repository Structure
-
-```text
-.
-├── agents/                  # 12 progressive Agent Harness examples + full reference
-├── agent_lab/               # Project-specific Agent Harness Lab CLI
-├── docs/                    # English and Chinese learning content
-├── papers/                  # Local paper input and report output directories
-├── recipes/                 # Local structured recipe JSON reports
-├── skills/                  # On-demand skills, Research Skill Pack, and Life Skill Pack
-├── web/                     # Next.js learning site, paper assistant, and recipe page
-├── tests/                   # Python tests
-├── data_pipeline/           # Data pipeline practice module
-├── my_package/              # Python package practice module
-├── .github/workflows/       # CI workflows
-├── requirements.txt         # Python dependencies
-└── README.zh-CN.md          # Chinese documentation
-```
-
-## Learning Path
-
-| Session | Topic | What It Demonstrates |
-| --- | --- | --- |
-| s01 | Agent Loop | Minimal model-tool loop |
-| s02 | Tool Use | Tool registry and dispatch map |
-| s03 | TodoWrite | Multi-step task planning |
-| s04 | Subagent | Subtask context isolation |
-| s05 | Skills | On-demand knowledge loading |
-| s06 | Context Compact | Long-context compression |
-| s07 | Task System | File-persisted task graph |
-| s08 | Background Tasks | Slow commands in the background |
-| s09 | Agent Teams | Persistent teammates and async mailboxes |
-| s10 | Team Protocols | Request-response protocols |
-| s11 | Autonomous Agents | Autonomous task scanning and claiming |
-| s12 | Worktree Isolation | Task-bound git worktree execution |
-| s_full | Full Reference | Combined reference implementation |
 
 ## Architecture
 
