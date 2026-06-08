@@ -22,17 +22,17 @@ Harness = Tools
 
 ## 项目亮点
 
-- 实现最小 Agent Loop，支持 `tool_use -> tool_result -> continue` 的多轮工具调用流程。
-- 设计工具注册与分发机制，将 shell、文件读写、编辑、任务管理等能力抽象为可组合工具。
-- 实现 Todo 和持久化任务系统，支持多步任务规划、任务依赖、状态流转和长期目标管理。
-- 新增 `agent_lab` CLI，支持任务、事件、技能、文档和论文助手的本地操作。
-- 新增 JSONL 事件日志，记录任务创建、认领、完成和论文报告生成等运行时事件。
-- 构建 Next.js Web Dashboard，展示任务状态、技能索引、文档统计、事件时间线和任务依赖图。
-- 新增科研知识扩展：论文助手支持 PDF / Markdown / text 上传和结构化科研阅读报告生成。
-- 新增 Research Skill Pack，将论文阅读、方法分析、实验分析和科研报告写作沉淀为可复用 Skill。
-- 新增智能食谱助手，根据已有食材推荐多个结构化 JSON 食谱方案，给出推荐理由、自动推荐厨具并生成具体烹饪步骤。
-- 新增 Life Skill Pack，沉淀食谱规划、烹饪步骤和基础营养提醒能力。
-- 配置 pytest、TypeScript check 和 Next.js build，保证基础质量。
+- 最小 Agent Loop 支持 `tool_use -> tool_result -> continue` 的多轮工具调用流程。
+- 工具注册与分发机制将 shell、文件读写、编辑、任务管理等能力抽象为可组合工具。
+- Todo 与持久化任务系统支持多步任务规划、任务依赖、状态流转和长期目标管理。
+- `agent_lab` CLI 提供任务、事件、技能、文档、论文助手和食谱助手的本地操作入口。
+- JSONL 事件日志记录任务创建、认领、完成、论文报告生成和食谱方案生成等运行时事件。
+- Next.js Web Dashboard 展示任务状态、技能索引、文档统计、事件时间线和任务依赖图。
+- 科研论文助手支持 PDF / Markdown / text 上传，并生成结构化科研阅读报告。
+- Research Skill Pack 将论文阅读、方法分析、实验分析和科研报告写作沉淀为可复用 Skill。
+- 智能食谱助手根据已有食材推荐多个结构化 JSON 食谱方案，给出推荐理由、自动推荐厨具并生成具体烹饪步骤。
+- Life Skill Pack 沉淀食谱规划、烹饪步骤和基础营养提醒能力。
+- pytest、TypeScript check、Next.js build 和 GitHub Actions 提供基础质量保障。
 
 ## 快速开始
 

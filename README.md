@@ -22,18 +22,18 @@ The model reasons and decides. The harness provides the observable, executable, 
 
 ## Project Highlights
 
-- Implements a minimal agent loop with multi-turn `tool_use -> tool_result -> continue` execution.
-- Builds a tool registration and dispatch layer for shell, file operations, editing, task management, and skill loading.
-- Adds a local `agent_lab` CLI for tasks, events, skills, docs, demo data, and paper reports.
-- Persists task state in JSON files and records runtime actions in a local JSONL event log.
-- Provides a Next.js dashboard for tasks, skill index, docs inventory, task dependencies, and event timelines.
-- Adds a research knowledge extension: paper reading assistant for PDF / Markdown / text files.
-- Supports drag-and-drop paper upload in the Web UI and returns generated Markdown reports.
-- Adds a Research Skill Pack for paper reading, method analysis, experiment analysis, and research report writing.
-- Adds a smart recipe assistant that recommends multiple structured JSON recipe options, explains why each option fits, recommends cooking tools, and generates detailed cooking steps.
-- Adds a Life Skill Pack for recipe planning, cooking instructions, and nutrition-aware notes.
-- Demonstrates subagents, context compaction, background tasks, multi-agent coordination, and worktree isolation.
-- Uses pytest, TypeScript checks, Next.js build, and GitHub Actions for basic quality coverage.
+- Minimal agent loop with multi-turn `tool_use -> tool_result -> continue` execution.
+- Tool registration and dispatch layer for shell commands, file operations, editing, task management, and skill loading.
+- Persistent Todo and task systems for multi-step planning, dependency tracking, status transitions, and long-running goals.
+- `agent_lab` CLI for local task, event, skill, doc, paper assistant, and recipe assistant workflows.
+- JSONL event log for task lifecycle events, paper report generation, and recipe option generation.
+- Next.js Web Dashboard for task status, skill index, docs inventory, event timelines, and task dependencies.
+- Paper reading assistant for PDF / Markdown / text upload and structured research reading reports.
+- Research Skill Pack for reusable paper reading, method analysis, experiment analysis, and research report writing workflows.
+- Smart recipe assistant for multiple structured JSON recipe options, recommendation reasons, cooking tool selection, and detailed cooking steps.
+- Life Skill Pack for recipe planning, cooking instructions, and nutrition-aware notes.
+- Subagent, context compaction, background task, multi-agent coordination, and worktree isolation examples.
+- pytest, TypeScript checks, Next.js build, and GitHub Actions for basic quality coverage.
 
 ## Quick Start
 
