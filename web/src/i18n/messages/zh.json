@@ -50,7 +50,7 @@
     "title": "智能食谱助手",
     "subtitle": "把已有食材、人数、时间和口味约束转换为结构化食谱卡片。",
     "generator_title": "网页端生成菜谱",
-    "generator_desc": "输入已有食材和烹饪约束，系统会调用本地 agent_lab 后端生成结构化 JSON 菜谱，并自动推荐合适厨具。",
+    "generator_desc": "输入已有食材和烹饪约束，系统会调用本地 agent_lab 后端生成多个结构化 JSON 菜谱方案，并自动推荐合适厨具。",
     "form_ingredients": "已有食材",
     "form_servings": "人数",
     "form_time": "可用时间（分钟）",
@@ -61,6 +61,7 @@
     "form_success": "生成成功",
     "form_error": "生成失败",
     "saved_to": "已保存到",
+    "options_title": "推荐方案",
     "create": "生成食谱",
     "create_desc": "CLI 会把食谱写入 recipes/output，页面数据由 npm run extract 同步。",
     "list": "查看本地食谱",
@@ -77,6 +78,7 @@
     "shopping": "购物清单",
     "substitutions": "替代方案",
     "notes": "提醒",
+    "reason": "推荐理由",
     "path": "文件"
   },
   "layers": {

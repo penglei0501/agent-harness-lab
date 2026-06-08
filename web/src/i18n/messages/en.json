@@ -50,7 +50,7 @@
     "title": "Smart Recipe Assistant",
     "subtitle": "Turn available ingredients, servings, time, and taste constraints into structured recipe cards.",
     "generator_title": "Generate a Recipe in the Browser",
-    "generator_desc": "Enter available ingredients and cooking constraints. The page calls the local agent_lab backend, generates structured JSON, and recommends suitable cooking tools automatically.",
+    "generator_desc": "Enter available ingredients and cooking constraints. The page calls the local agent_lab backend, generates multiple structured JSON recipe options, and recommends suitable cooking tools automatically.",
     "form_ingredients": "Available Ingredients",
     "form_servings": "Servings",
     "form_time": "Available Time (minutes)",
@@ -61,6 +61,7 @@
     "form_success": "Generated",
     "form_error": "Generation failed",
     "saved_to": "saved to",
+    "options_title": "Recommended Options",
     "create": "Generate Recipe",
     "create_desc": "The CLI writes recipes to recipes/output, and npm run extract syncs them into the Web page.",
     "list": "Inspect Local Recipes",
@@ -77,6 +78,7 @@
     "shopping": "Shopping List",
     "substitutions": "Substitutions",
     "notes": "Notes",
+    "reason": "Reason",
     "path": "File"
   },
   "layers": {

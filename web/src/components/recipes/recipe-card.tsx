@@ -22,6 +22,7 @@ interface RecipeLabels {
   shopping: string;
   substitutions: string;
   notes: string;
+  reason: string;
   path: string;
 }
 
@@ -79,6 +80,12 @@ export function RecipeCard({ recipe, labels }: RecipeCardProps) {
             <p className="mt-2 max-w-3xl text-sm leading-6 text-zinc-500 dark:text-zinc-400">
               {recipe.summary}
             </p>
+            {recipe.recommendation_reason && (
+              <p className="mt-2 max-w-3xl rounded-md bg-emerald-50 px-3 py-2 text-sm text-emerald-800 dark:bg-emerald-950/30 dark:text-emerald-300">
+                <span className="font-medium">{labels.reason}: </span>
+                {recipe.recommendation_reason}
+              </p>
+            )}
           </div>
           <div className="grid grid-cols-2 gap-2 text-xs sm:grid-cols-4">
             <Tag>

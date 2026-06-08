@@ -41,7 +41,15 @@ class RecipeReport:
     shopping_list: list[str]
     substitutions: list[RecipeSubstitution]
     notes: list[str]
+    recommendation_reason: str = ""
     path: Path | None = None
+
+
+@dataclass(frozen=True)
+class RecipeCandidate:
+    title: str
+    reason: str
+    tools: list[str]
 
 
 def parse_list(value: str | list[str] | None) -> list[str]:
@@ -168,6 +176,64 @@ def _pick_recipe_title(ingredients: list[str], *, zh: bool) -> str:
     if has_rice:
         return "Simple Rice Bowl"
     return "Flexible Pantry Meal"
+
+
+def _recipe_candidates(ingredients: list[str], *, zh: bool) -> list[RecipeCandidate]:
+    has_egg = _has_any(ingredients, {"egg", "鸡蛋", "蛋"})
+    has_tomato = _has_any(ingredients, {"tomato", "番茄", "西红柿"})
+    has_rice = _has_any(ingredients, {"rice", "米饭", "米"})
+    has_noodle = _has_any(ingredients, {"noodle", "面", "面条"})
+    has_beef = _has_any(ingredients, {"beef", "牛肉"})
+    has_potato = _has_any(ingredients, {"potato", "土豆", "马铃薯"})
+
+    if zh:
+        if has_egg and has_tomato and has_rice:
+            return [
+                RecipeCandidate("番茄鸡蛋盖饭", "最快，适合一人食或工作日晚餐。", ["炒锅"]),
+                RecipeCandidate("番茄蛋炒饭", "更香更下饭，适合处理剩米饭。", ["炒锅"]),
+                RecipeCandidate("番茄鸡蛋汤泡饭", "更清淡，适合想少油一点的时候。", ["汤锅"]),
+            ]
+        if has_egg and has_tomato and has_noodle:
+            return [
+                RecipeCandidate("番茄鸡蛋面", "成菜快，主食和配菜一次解决。", ["汤锅"]),
+                RecipeCandidate("番茄鸡蛋拌面", "汤汁更浓，适合重口味。", ["炒锅"]),
+                RecipeCandidate("番茄蛋花汤面", "更清淡，适合晚餐。", ["汤锅"]),
+            ]
+        if has_beef and has_potato:
+            return [
+                RecipeCandidate("土豆牛肉小炒", "下饭、成菜快，适合现有食材直接开火。", ["炒锅"]),
+                RecipeCandidate("土豆牛肉焖饭", "主食和菜合一，适合想少洗锅的时候。", ["电饭煲"]),
+                RecipeCandidate("土豆牛肉汤", "更清淡，适合想做热汤时选择。", ["汤锅"]),
+            ]
+        return [
+            RecipeCandidate(_pick_recipe_title(ingredients, zh=True), "用现有食材最快成菜，适合日常晚餐。", ["炒锅"]),
+            RecipeCandidate("清爽食材汤", "少油、口味更轻，适合晚上吃。", ["汤锅"]),
+            RecipeCandidate("简易拌饭碗", "适合搭配米饭，把食材集中成一份主食碗。", ["炒锅"]),
+        ]
+
+    if has_egg and has_tomato and has_rice:
+        return [
+            RecipeCandidate("Tomato Egg Rice Bowl", "Fastest option for a simple one-bowl meal.", ["pan"]),
+            RecipeCandidate("Tomato Egg Fried Rice", "More savory and better for leftover rice.", ["pan"]),
+            RecipeCandidate("Tomato Egg Soup Rice", "Lighter option with a softer texture.", ["pot"]),
+        ]
+    if has_egg and has_tomato and has_noodle:
+        return [
+            RecipeCandidate("Tomato Egg Noodles", "Fast staple meal with minimal extra ingredients.", ["pot"]),
+            RecipeCandidate("Tomato Egg Tossed Noodles", "Richer sauce and stronger flavor.", ["pan"]),
+            RecipeCandidate("Tomato Egg Noodle Soup", "Lighter dinner option.", ["pot"]),
+        ]
+    if has_beef and has_potato:
+        return [
+            RecipeCandidate("Potato Beef Stir-Fry", "Fast and hearty with the ingredients already available.", ["pan"]),
+            RecipeCandidate("Potato Beef Rice Cooker Bowl", "One-pot option with less cleanup.", ["rice cooker"]),
+            RecipeCandidate("Potato Beef Soup", "Lighter and warmer option.", ["pot"]),
+        ]
+    return [
+        RecipeCandidate(_pick_recipe_title(ingredients, zh=False), "Fastest practical option using the available ingredients.", ["pan"]),
+        RecipeCandidate("Light Pantry Soup", "Lighter option with less oil.", ["pot"]),
+        RecipeCandidate("Simple Pantry Rice Bowl", "Best if you want a filling one-bowl meal.", ["pan"]),
+    ]
 
 
 def _basic_missing_ingredients(ingredients: list[str], avoid: list[str], *, zh: bool) -> list[str]:
@@ -305,6 +371,62 @@ def suggest_recipe(
     events_path: Path = EVENTS_PATH,
 ) -> RecipeReport:
     """Generate one structured recipe report and persist it as JSON."""
+    report = _build_recipe_report(
+        ingredients,
+        servings=servings,
+        time_minutes=time_minutes,
+        taste=taste,
+        avoid=avoid,
+        tools=tools,
+    )
+    report_with_path = _persist_recipe_report(report, output_dir)
+
+    append_event(
+        "recipe_requested",
+        {
+            "title": report.title,
+            "ingredients": report.ingredients_used,
+            "servings": report.servings,
+            "time_minutes": report.time_minutes,
+        },
+        events_path=events_path,
+    )
+    append_event(
+        "recipe_generated",
+        {
+            "title": report.title,
+            "recipe_path": str(report_with_path.path),
+            "servings": report.servings,
+            "time_minutes": report.time_minutes,
+        },
+        events_path=events_path,
+    )
+    if report.shopping_list:
+        append_event(
+            "shopping_list_generated",
+            {
+                "title": report.title,
+                "items": report.shopping_list,
+            },
+            events_path=events_path,
+        )
+
+    return report_with_path
+
+
+def suggest_recipe_options(
+    ingredients: str | list[str],
+    *,
+    servings: int = 1,
+    time_minutes: int = 20,
+    taste: str = "balanced",
+    avoid: str | list[str] | None = None,
+    tools: str | list[str] | None = None,
+    limit: int = 3,
+    output_dir: Path = RECIPES_OUTPUT_DIR,
+    events_path: Path = EVENTS_PATH,
+) -> list[RecipeReport]:
+    """Generate multiple structured recipe options and persist each as JSON."""
     ingredient_items = parse_list(ingredients)
     if not ingredient_items:
         raise ValueError("At least one ingredient is required.")
@@ -312,14 +434,75 @@ def suggest_recipe(
     avoid_items = parse_list(avoid)
     raw_tool_items = parse_list(tools)
     zh = _is_zh(ingredient_items, taste, avoid_items, raw_tool_items)
-    tool_items = _normalize_cooking_tools(raw_tool_items, ingredient_items, zh=zh)
+    candidates = _recipe_candidates(ingredient_items, zh=zh)[: max(1, limit)]
+    reports = [
+        _build_recipe_report(
+            ingredient_items,
+            servings=servings,
+            time_minutes=time_minutes,
+            taste=taste,
+            avoid=avoid_items,
+            tools=raw_tool_items,
+            candidate=candidate,
+        )
+        for candidate in candidates
+    ]
+    persisted = [_persist_recipe_report(report, output_dir) for report in reports]
+
+    append_event(
+        "recipe_options_requested",
+        {
+            "ingredients": ingredient_items,
+            "servings": persisted[0].servings,
+            "time_minutes": persisted[0].time_minutes,
+            "count": len(persisted),
+        },
+        events_path=events_path,
+    )
+    append_event(
+        "recipe_options_generated",
+        {
+            "title": persisted[0].title,
+            "count": len(persisted),
+            "recipe_paths": [str(report.path) for report in persisted],
+        },
+        events_path=events_path,
+    )
+
+    return persisted
+
+
+def _build_recipe_report(
+    ingredients: str | list[str],
+    *,
+    servings: int,
+    time_minutes: int,
+    taste: str,
+    avoid: str | list[str] | None,
+    tools: str | list[str] | None,
+    candidate: RecipeCandidate | None = None,
+) -> RecipeReport:
+    ingredient_items = parse_list(ingredients)
+    if not ingredient_items:
+        raise ValueError("At least one ingredient is required.")
+
+    avoid_items = parse_list(avoid)
+    raw_tool_items = parse_list(tools)
+    zh = _is_zh(ingredient_items, taste, avoid_items, raw_tool_items)
+    if raw_tool_items:
+        tool_source = raw_tool_items
+    elif candidate:
+        tool_source = candidate.tools
+    else:
+        tool_source = []
+    tool_items = _normalize_cooking_tools(tool_source, ingredient_items, zh=zh)
     safe_servings = max(1, servings)
     safe_time = max(5, time_minutes)
-    title = _pick_recipe_title(ingredient_items, zh=zh)
+    title = candidate.title if candidate else _pick_recipe_title(ingredient_items, zh=zh)
     missing = _basic_missing_ingredients(ingredient_items, avoid_items, zh=zh)
     shopping_list = _shopping_list(missing, zh=zh)
 
-    report = RecipeReport(
+    return RecipeReport(
         title=title,
         summary=_build_summary(
             ingredient_items,
@@ -340,46 +523,18 @@ def suggest_recipe(
         shopping_list=shopping_list,
         substitutions=_substitutions(zh=zh),
         notes=_notes(zh=zh),
+        recommendation_reason=candidate.reason if candidate else "",
     )
 
+
+def _persist_recipe_report(report: RecipeReport, output_dir: Path) -> RecipeReport:
     output_dir.mkdir(parents=True, exist_ok=True)
-    output_path = output_dir / f"{_slug(title)}.json"
+    output_path = output_dir / f"{_slug(report.title)}.json"
     report_with_path = replace(report, path=output_path)
     output_path.write_text(
         json.dumps(_to_json_dict(report_with_path), ensure_ascii=False, indent=2),
         encoding="utf-8",
     )
-
-    append_event(
-        "recipe_requested",
-        {
-            "title": title,
-            "ingredients": ingredient_items,
-            "servings": safe_servings,
-            "time_minutes": safe_time,
-        },
-        events_path=events_path,
-    )
-    append_event(
-        "recipe_generated",
-        {
-            "title": title,
-            "recipe_path": str(output_path),
-            "servings": safe_servings,
-            "time_minutes": safe_time,
-        },
-        events_path=events_path,
-    )
-    if shopping_list:
-        append_event(
-            "shopping_list_generated",
-            {
-                "title": title,
-                "items": shopping_list,
-            },
-            events_path=events_path,
-        )
-
     return report_with_path
 
 

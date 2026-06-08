@@ -39,18 +39,28 @@ function cleanPositiveInt(value: unknown, fallback: number, min: number, max: nu
   return Math.min(max, Math.max(min, Math.floor(numeric)));
 }
 
-function resolveRecipePath(stdout: string) {
-  const match = stdout.match(/Generated recipe report:\s+(.+)\s*$/m);
-  if (!match) {
-    throw new Error("Recipe report path was not returned by agent_lab.");
-  }
-
-  const outputPath = path.resolve(REPO_ROOT, match[1].trim());
+function assertRecipePath(outputPath: string) {
   const relative = path.relative(RECIPES_OUTPUT_DIR, outputPath);
   if (relative.startsWith("..") || path.isAbsolute(relative)) {
     throw new Error("Generated recipe path is outside recipes/output.");
   }
-  return outputPath;
+}
+
+function resolveRecipePaths(stdout: string) {
+  const paths = stdout
+    .split(/\r?\n/)
+    .map((line) => line.match(/^-\s+(.+?)(?:\s+-\s+.*)?$/)?.[1]?.trim())
+    .filter((value): value is string => Boolean(value))
+    .map((value) => path.resolve(REPO_ROOT, value));
+
+  if (!paths.length) {
+    throw new Error("Recipe option paths were not returned by agent_lab.");
+  }
+
+  for (const outputPath of paths) {
+    assertRecipePath(outputPath);
+  }
+  return paths;
 }
 
 export async function POST(request: Request) {
@@ -78,7 +88,7 @@ export async function POST(request: Request) {
     "-m",
     "agent_lab",
     "recipes",
-    "suggest",
+    "suggest-options",
     "--ingredients",
     ingredients,
     "--servings",
@@ -87,6 +97,8 @@ export async function POST(request: Request) {
     String(time),
     "--taste",
     taste,
+    "--limit",
+    "3",
   ];
   if (avoid) args.push("--avoid", avoid);
 
@@ -105,12 +117,21 @@ export async function POST(request: Request) {
   }
 
   try {
-    const recipePath = resolveRecipePath(stdout);
-    const recipe = JSON.parse(await fs.readFile(recipePath, "utf-8"));
+    const recipePaths = resolveRecipePaths(stdout);
+    const options = await Promise.all(
+      recipePaths.map(async (recipePath) => {
+        const recipe = JSON.parse(await fs.readFile(recipePath, "utf-8"));
+        return {
+          ...recipe,
+          path: path.relative(REPO_ROOT, recipePath),
+        };
+      })
+    );
     return NextResponse.json({
       ok: true,
-      recipe,
-      path: path.relative(REPO_ROOT, recipePath),
+      options,
+      recipe: options[0],
+      path: options[0]?.path,
     });
   } catch (error) {
     const message = error instanceof Error ? error.message : "Recipe report was not generated.";

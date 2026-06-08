@@ -19,6 +19,7 @@ interface RecipeGeneratorLabels {
   success: string;
   error: string;
   saved_to: string;
+  options_title: string;
 }
 
 interface RecipeCardLabels {
@@ -32,6 +33,7 @@ interface RecipeCardLabels {
   shopping: string;
   substitutions: string;
   notes: string;
+  reason: string;
   path: string;
 }
 
@@ -42,6 +44,7 @@ interface RecipeGeneratorProps {
 
 interface RecipeResponse {
   ok: boolean;
+  options?: RecipeReport[];
   recipe?: RecipeReport;
   path?: string;
   error?: string;
@@ -58,15 +61,15 @@ export function RecipeGenerator({ labels, cardLabels }: RecipeGeneratorProps) {
   const [avoid, setAvoid] = useState("spicy");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const [result, setResult] = useState<RecipeReport | null>(null);
-  const [resultPath, setResultPath] = useState("");
+  const [results, setResults] = useState<RecipeReport[]>([]);
+  const [resultPaths, setResultPaths] = useState<string[]>([]);
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setLoading(true);
     setError("");
-    setResult(null);
-    setResultPath("");
+    setResults([]);
+    setResultPaths([]);
 
     try {
       const response = await fetch("/api/recipes/suggest/", {
@@ -81,11 +84,16 @@ export function RecipeGenerator({ labels, cardLabels }: RecipeGeneratorProps) {
         }),
       });
       const payload = (await response.json()) as RecipeResponse;
-      if (!response.ok || !payload.ok || !payload.recipe) {
+      const options = payload.options ?? (payload.recipe ? [payload.recipe] : []);
+      if (!response.ok || !payload.ok || !options.length) {
         throw new Error(payload.error || labels.error);
       }
-      setResult({ ...payload.recipe, path: payload.path ?? payload.recipe.path });
-      setResultPath(payload.path ?? payload.recipe.path);
+      const normalized = options.map((recipe) => ({
+        ...recipe,
+        path: recipe.path || payload.path || "",
+      }));
+      setResults(normalized);
+      setResultPaths(normalized.map((recipe) => recipe.path).filter(Boolean));
     } catch (submitError) {
       setError(submitError instanceof Error ? submitError.message : labels.error);
     } finally {
@@ -166,9 +174,9 @@ export function RecipeGenerator({ labels, cardLabels }: RecipeGeneratorProps) {
               {loading ? <Loader2 size={16} className="animate-spin" /> : <Sparkles size={16} />}
               {loading ? labels.generating : labels.submit}
             </button>
-            {resultPath && (
+            {resultPaths.length > 0 && (
               <span className="text-sm text-emerald-700 dark:text-emerald-300">
-                {labels.success}: {labels.saved_to} {resultPath}
+                {labels.success}: {labels.saved_to} {resultPaths.join(", ")}
               </span>
             )}
           </div>
@@ -181,7 +189,16 @@ export function RecipeGenerator({ labels, cardLabels }: RecipeGeneratorProps) {
         )}
       </Card>
 
-      {result && <RecipeCard recipe={result} labels={cardLabels} />}
+      {results.length > 0 && (
+        <div className="space-y-4">
+          <h3 className="text-lg font-semibold">{labels.options_title}</h3>
+          <div className="space-y-5">
+            {results.map((recipe) => (
+              <RecipeCard key={recipe.path || recipe.title} recipe={recipe} labels={cardLabels} />
+            ))}
+          </div>
+        </div>
+      )}
     </section>
   );
 }

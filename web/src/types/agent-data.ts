@@ -101,6 +101,7 @@ export interface RecipeReport {
   shopping_list: string[];
   substitutions: RecipeSubstitution[];
   notes: string[];
+  recommendation_reason: string;
   path: string;
 }
 

@@ -30,7 +30,7 @@ Harness = Tools
 - 构建 Next.js Web Dashboard，展示任务状态、技能索引、文档统计、事件时间线和任务依赖图。
 - 新增科研知识扩展：论文助手支持 PDF / Markdown / text 上传和结构化科研阅读报告生成。
 - 新增 Research Skill Pack，将论文阅读、方法分析、实验分析和科研报告写作沉淀为可复用 Skill。
-- 新增智能食谱助手，根据已有食材生成结构化 JSON 食谱报告。
+- 新增智能食谱助手，根据已有食材推荐多个结构化 JSON 食谱方案。
 - 新增 Life Skill Pack，沉淀食谱规划、烹饪步骤和基础营养提醒能力。
 - 配置 pytest、TypeScript check 和 Next.js build，保证基础质量。
 
@@ -68,7 +68,7 @@ http://localhost:3000/zh/recipes
 cd /path/to/agent-harness-lab
 python -m agent_lab demo seed
 python -m agent_lab papers read papers/input/example.pdf
-python -m agent_lab recipes suggest --ingredients "egg,tomato,rice" --servings 1 --time 20
+python -m agent_lab recipes suggest-options --ingredients "egg,tomato,rice" --servings 1 --time 20
 python -m agent_lab tasks list
 python -m agent_lab events list
 ```
@@ -126,7 +126,7 @@ research-report-writing   结构化科研阅读报告生成
 
 ## 智能食谱助手
 
-食谱助手是生活知识扩展。和论文助手不同，食谱助手不输出 Markdown，而是输出结构化 JSON，方便后续 Web 页面渲染成菜谱卡片、食材标签、步骤时间线、购物清单和替代方案。用户只需要输入食材和约束，系统会自动推荐合适厨具。
+食谱助手是生活知识扩展。和论文助手不同，食谱助手不输出 Markdown，而是输出结构化 JSON，方便后续 Web 页面渲染成菜谱卡片、食材标签、步骤时间线、购物清单和替代方案。用户只需要输入食材和约束，系统会推荐多个候选方案，并自动推荐合适厨具。
 
 Web 页面可以直接输入食材并生成菜谱：
 
@@ -134,16 +134,17 @@ Web 页面可以直接输入食材并生成菜谱：
 http://localhost:3000/zh/recipes
 ```
 
-网页端会调用本地 Next.js API，再由 API 调用 `agent_lab recipes suggest` 生成 JSON 菜谱。
+网页端会调用本地 Next.js API，再由 API 调用 `agent_lab recipes suggest-options` 生成多个 JSON 菜谱方案。
 
 ```bash
-python -m agent_lab recipes suggest \
+python -m agent_lab recipes suggest-options \
   --ingredients "egg,tomato,rice" \
   --servings 1 \
   --time 20 \
   --taste "light" \
   --avoid "spicy"
 
+python -m agent_lab recipes suggest --ingredients "egg,tomato,rice"
 python -m agent_lab recipes list
 ```
 

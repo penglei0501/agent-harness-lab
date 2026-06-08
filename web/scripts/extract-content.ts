@@ -371,6 +371,7 @@ function buildRecipeIndex(): RecipeIndex {
       shopping_list: asStringList(recipe.shopping_list),
       substitutions: asRecipeSubstitutions(recipe.substitutions),
       notes: asStringList(recipe.notes),
+      recommendation_reason: String(recipe.recommendation_reason ?? ""),
       path: repoRelative(filePath),
     });
   }

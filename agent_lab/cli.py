@@ -11,7 +11,7 @@ from .docs import load_docs
 from .events import load_events, tail_events
 from .papers import generate_notes_for_folder, generate_paper_note, list_paper_notes
 from .paths import REPO_ROOT
-from .recipes import list_recipe_reports, suggest_recipe
+from .recipes import list_recipe_reports, suggest_recipe, suggest_recipe_options
 from .skills import load_skills
 from .tasks import claim_task, complete_task, create_task, get_task, load_tasks
 
@@ -226,6 +226,29 @@ def suggest_recipe_command(args: argparse.Namespace) -> int:
     return 0
 
 
+def suggest_recipe_options_command(args: argparse.Namespace) -> int:
+    try:
+        reports = suggest_recipe_options(
+            args.ingredients,
+            servings=args.servings,
+            time_minutes=args.time,
+            taste=args.taste,
+            avoid=args.avoid,
+            tools=args.tools,
+            limit=args.limit,
+            output_dir=args.output_dir,
+            events_path=args.events_path,
+        )
+    except ValueError as exc:
+        print(str(exc))
+        return 1
+    print(f"Generated {len(reports)} recipe options:")
+    for report in reports:
+        reason = f" - {report.recommendation_reason}" if report.recommendation_reason else ""
+        print(f"- {_rel(report.path) if report.path else report.title}{reason}")
+    return 0
+
+
 def list_recipe_reports_command(args: argparse.Namespace) -> int:
     rows = [[path.stem, _rel(path)] for path in list_recipe_reports(args.output_dir)]
     _print_table(["Recipe", "Report"], rows)
@@ -375,6 +398,23 @@ def build_parser() -> argparse.ArgumentParser:
     recipes_suggest.add_argument("--avoid", default="", help="Comma-separated avoid list")
     recipes_suggest.add_argument("--tools", default="", help="Comma-separated kitchen tools")
     recipes_suggest.set_defaults(func=suggest_recipe_command)
+
+    recipes_options = recipes_sub.add_parser(
+        "suggest-options",
+        help="Suggest multiple recipe options from ingredients",
+    )
+    recipes_options.add_argument(
+        "--ingredients",
+        required=True,
+        help="Comma-separated available ingredients, for example: egg,tomato,rice",
+    )
+    recipes_options.add_argument("--servings", type=int, default=1, help="Number of servings")
+    recipes_options.add_argument("--time", type=int, default=20, help="Available cooking minutes")
+    recipes_options.add_argument("--taste", default="balanced", help="Taste preference")
+    recipes_options.add_argument("--avoid", default="", help="Comma-separated avoid list")
+    recipes_options.add_argument("--tools", default="", help="Comma-separated kitchen tools")
+    recipes_options.add_argument("--limit", type=int, default=3, help="Number of recipe options")
+    recipes_options.set_defaults(func=suggest_recipe_options_command)
 
     recipes_list = recipes_sub.add_parser("list", help="List generated recipe reports")
     recipes_list.set_defaults(func=list_recipe_reports_command)

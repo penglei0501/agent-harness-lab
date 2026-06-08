@@ -34,6 +34,7 @@ export default async function RecipesPage({
     shopping: t("shopping"),
     substitutions: t("substitutions"),
     notes: t("notes"),
+    reason: t("reason"),
     path: t("path"),
   };
   const generatorLabels = {
@@ -49,6 +50,7 @@ export default async function RecipesPage({
     success: t("form_success"),
     error: t("form_error"),
     saved_to: t("saved_to"),
+    options_title: t("options_title"),
   };
 
   return (
