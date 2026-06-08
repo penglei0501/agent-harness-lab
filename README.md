@@ -2,7 +2,7 @@
 
 English | [简体中文](README.zh-CN.md)
 
-A Python + Next.js Agent Harness lab for learning, experimenting with, and visualizing coding-agent runtime architecture. The project includes progressive agent examples, a local `agent_lab` CLI, a Web dashboard, and a research knowledge extension that turns PDF / Markdown / text papers into structured research reading reports.
+A Python + Next.js Agent Harness lab for learning, experimenting with, and visualizing coding-agent runtime architecture. The project includes progressive agent examples, a local `agent_lab` CLI, a Web dashboard, a research paper assistant, and a smart recipe assistant that demonstrates how the same harness can expand into domain workflows.
 
 Core idea:
 
@@ -30,7 +30,7 @@ The model reasons and decides. The harness provides the observable, executable, 
 - Adds a research knowledge extension: paper reading assistant for PDF / Markdown / text files.
 - Supports drag-and-drop paper upload in the Web UI and returns generated Markdown reports.
 - Adds a Research Skill Pack for paper reading, method analysis, experiment analysis, and research report writing.
-- Adds a smart recipe assistant that recommends multiple structured JSON recipe options from available ingredients.
+- Adds a smart recipe assistant that recommends multiple structured JSON recipe options, explains why each option fits, recommends cooking tools, and generates detailed cooking steps.
 - Adds a Life Skill Pack for recipe planning, cooking instructions, and nutrition-aware notes.
 - Demonstrates subagents, context compaction, background tasks, multi-agent coordination, and worktree isolation.
 - Uses pytest, TypeScript checks, Next.js build, and GitHub Actions for basic quality coverage.

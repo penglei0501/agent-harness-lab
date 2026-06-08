@@ -2,7 +2,7 @@
 
 [English](README.md) | 简体中文
 
-Agent Harness Lab 是一个基于 Python + Next.js 的 Agent Harness 学习、实验与可视化项目。它通过 12 个递进式 Agent 示例展示工具调用、任务规划、Skill 加载、上下文压缩、后台任务、多 Agent 协作和 worktree 隔离等机制，并在此基础上扩展了一个科研论文助手，用于将 PDF / Markdown / text 论文转换为结构化科研阅读报告。
+Agent Harness Lab 是一个基于 Python + Next.js 的 Agent Harness 学习、实验与可视化项目。它通过 12 个递进式 Agent 示例展示工具调用、任务规划、Skill 加载、上下文压缩、后台任务、多 Agent 协作和 worktree 隔离等机制，并在此基础上扩展了科研论文助手和智能食谱助手，展示同一套 Harness 如何扩展到不同领域工作流。
 
 核心观点：
 
@@ -30,7 +30,7 @@ Harness = Tools
 - 构建 Next.js Web Dashboard，展示任务状态、技能索引、文档统计、事件时间线和任务依赖图。
 - 新增科研知识扩展：论文助手支持 PDF / Markdown / text 上传和结构化科研阅读报告生成。
 - 新增 Research Skill Pack，将论文阅读、方法分析、实验分析和科研报告写作沉淀为可复用 Skill。
-- 新增智能食谱助手，根据已有食材推荐多个结构化 JSON 食谱方案。
+- 新增智能食谱助手，根据已有食材推荐多个结构化 JSON 食谱方案，给出推荐理由、自动推荐厨具并生成具体烹饪步骤。
 - 新增 Life Skill Pack，沉淀食谱规划、烹饪步骤和基础营养提醒能力。
 - 配置 pytest、TypeScript check 和 Next.js build，保证基础质量。
 
