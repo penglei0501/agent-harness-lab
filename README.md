@@ -2,7 +2,7 @@
 
 English | [简体中文](README.zh-CN.md)
 
-A Python + Next.js Agent Harness lab for learning, experimenting with, and visualizing coding-agent runtime architecture. The project includes progressive agent examples, a local `agent_lab` CLI, a Web dashboard, a research paper assistant, and a smart recipe assistant that demonstrates how the same harness can expand into domain workflows.
+A Python + Next.js Agent Harness lab for learning, experimenting with, and visualizing coding-agent runtime architecture. The project includes progressive agent examples, a local `agent_lab` CLI, a Web dashboard, a research paper assistant, a smart recipe assistant, and a GitHub repository insight assistant that demonstrates how the same harness can expand into domain workflows.
 
 Core idea:
 
@@ -27,12 +27,13 @@ The model reasons and decides. The harness provides the observable, executable, 
 - Unified `HarnessRuntime` for action planning, skill selection, registered tool execution, artifact collection, and event capture.
 - Persistent Todo and task systems for multi-step planning, dependency tracking, status transitions, and long-running goals.
 - `agent_lab` CLI for local task, event, skill, doc, paper assistant, and recipe assistant workflows.
-- JSONL event log for task lifecycle events, paper report generation, and recipe option generation.
+- JSONL event log for task lifecycle events, paper report generation, recipe option generation, and repository insight reports.
 - Next.js Web Dashboard for task status, skill index, docs inventory, event timelines, and task dependencies.
 - Paper reading assistant for PDF / Markdown / text upload and structured research reading reports.
 - Research Skill Pack for reusable paper reading, method analysis, experiment analysis, and research report writing workflows.
 - Smart recipe assistant for multiple structured JSON recipe options, recommendation reasons, cooking tool selection, and detailed cooking steps.
 - Life Skill Pack for recipe planning, cooking instructions, and nutrition-aware notes.
+- GitHub repository insight assistant for public repository metadata, README, language statistics, file tree analysis, and developer-focused Markdown reports.
 - Subagent, context compaction, background task, multi-agent coordination, and worktree isolation examples.
 - pytest, TypeScript checks, Next.js build, and GitHub Actions for basic quality coverage.
 
@@ -45,6 +46,7 @@ The model reasons and decides. The harness provides the observable, executable, 
 ├── docs/                    # English and Chinese learning content
 ├── papers/                  # Local paper input and report output directories
 ├── recipes/                 # Local structured recipe JSON reports
+├── github_reports/          # Local GitHub repository insight reports
 ├── skills/                  # On-demand skills, Research Skill Pack, and Life Skill Pack
 ├── web/                     # Next.js learning site, paper assistant, and recipe page
 ├── tests/                   # Python tests
@@ -65,12 +67,12 @@ CLI / Web API
   -> Planner
   -> Skill selection
   -> Tool registry
-  -> Paper / Recipe tool
+  -> Paper / Recipe / Repository tool
   -> Artifact writer
   -> JSONL event log
 ```
 
-This keeps the paper assistant and recipe assistant under the same harness contract. Each action has a plan, a related skill set, a registered local tool, generated artifacts, and captured runtime events.
+This keeps the paper assistant, recipe assistant, and repository insight assistant under the same harness contract. Each action has a plan, a related skill set, a registered local tool, generated artifacts, and captured runtime events.
 
 ## Learning Path
 
@@ -134,11 +136,12 @@ cd /path/to/agent-harness-lab
 python -m agent_lab demo seed
 python -m agent_lab papers read papers/input/example.pdf
 python -m agent_lab recipes suggest-options --ingredients "egg,tomato,rice" --servings 1 --time 20
+python -m agent_lab repos summarize https://github.com/browser-use/browser-use
 python -m agent_lab tasks list
 python -m agent_lab events list
 ```
 
-Local runtime data such as `.tasks/`, `.agent_lab/`, `papers/input/`, `papers/output/`, and `recipes/output/` is ignored by Git.
+Local runtime data such as `.tasks/`, `.agent_lab/`, `papers/input/`, `papers/output/`, `recipes/output/`, and `github_reports/output/` is ignored by Git.
 
 ## Paper Reading Assistant
 
@@ -229,6 +232,40 @@ Then open:
 http://localhost:3000/zh/recipes
 http://localhost:3000/en/recipes
 ```
+
+## GitHub Repository Insight Assistant
+
+The repository insight assistant is a developer tool extension. It accepts a public GitHub repository URL, fetches repository metadata, README content, language statistics, and file tree information through the GitHub REST API, then writes a structured Markdown technical report.
+
+CLI usage:
+
+```bash
+python -m agent_lab repos summarize https://github.com/browser-use/browser-use
+python -m agent_lab repos list
+```
+
+Generated reports are saved in:
+
+```text
+github_reports/output/
+```
+
+Generated reports include:
+
+```text
+One-sentence summary
+Project goals and use cases
+Repository metadata
+Technology stack signals
+Important folders and files
+Core module analysis
+Setup and run hints from README
+Engineering quality observations
+Potential risks or missing information
+Engineering improvement suggestions
+```
+
+This assistant intentionally focuses on technical repository understanding and engineering analysis.
 
 ## Life Skill Pack
 

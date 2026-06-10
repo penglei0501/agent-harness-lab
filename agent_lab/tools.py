@@ -9,6 +9,7 @@ from typing import Any
 
 from .papers import generate_notes_for_folder, generate_paper_note
 from .recipes import suggest_recipe, suggest_recipe_options
+from .repos import summarize_github_repo
 
 ToolHandler = Callable[..., Any]
 
@@ -82,6 +83,17 @@ def _suggest_recipe_options_tool(**kwargs: Any) -> Any:
     )
 
 
+def _summarize_repo_tool(**kwargs: Any) -> Any:
+    fetcher = kwargs.get("fetcher")
+    args: dict[str, Any] = {
+        "output_dir": Path(kwargs["output_dir"]),
+        "events_path": Path(kwargs["events_path"]),
+    }
+    if fetcher is not None:
+        args["fetcher"] = fetcher
+    return summarize_github_repo(kwargs["github_url"], **args)
+
+
 def default_tool_registry() -> ToolRegistry:
     registry = ToolRegistry()
     registry.register(
@@ -103,5 +115,10 @@ def default_tool_registry() -> ToolRegistry:
         "recipes.suggest_options",
         "Generate multiple structured recipe options from ingredients and constraints.",
         _suggest_recipe_options_tool,
+    )
+    registry.register(
+        "repos.summarize",
+        "Generate a structured developer-focused report from a public GitHub repository URL.",
+        _summarize_repo_tool,
     )
     return registry

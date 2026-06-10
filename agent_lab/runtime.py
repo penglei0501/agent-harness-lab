@@ -7,7 +7,7 @@ from pathlib import Path
 from typing import Any
 
 from .events import load_events
-from .paths import EVENTS_PATH, PAPERS_OUTPUT_DIR, RECIPES_OUTPUT_DIR, SKILLS_DIR
+from .paths import EVENTS_PATH, GITHUB_REPORTS_OUTPUT_DIR, PAPERS_OUTPUT_DIR, RECIPES_OUTPUT_DIR, SKILLS_DIR
 from .planner import plan_for_action
 from .skills import load_skills
 from .tools import ToolRegistry, default_tool_registry
@@ -18,6 +18,7 @@ ACTION_SKILLS: dict[str, list[str]] = {
     "papers.read_folder": ["paper-reading", "pdf", "research-report-writing"],
     "recipes.suggest": ["recipe-planning", "cooking-instructions", "nutrition-awareness"],
     "recipes.suggest_options": ["recipe-planning", "cooking-instructions", "nutrition-awareness"],
+    "repos.summarize": ["github-repo-insight"],
 }
 
 
@@ -79,6 +80,8 @@ class HarnessRuntime:
             normalized.setdefault("output_dir", PAPERS_OUTPUT_DIR)
         elif action.startswith("recipes."):
             normalized.setdefault("output_dir", RECIPES_OUTPUT_DIR)
+        elif action.startswith("repos."):
+            normalized.setdefault("output_dir", GITHUB_REPORTS_OUTPUT_DIR)
         return normalized
 
     def _artifacts_for(self, action: str, output: Any) -> dict[str, Any]:
@@ -93,4 +96,6 @@ class HarnessRuntime:
                 "recipe_paths": [str(report.path) for report in output],
                 "count": len(output),
             }
+        if action == "repos.summarize":
+            return {"report_path": str(output.path), "repo": output.repo}
         return {}

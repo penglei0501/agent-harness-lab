@@ -27,6 +27,13 @@ ACTION_PLANS: dict[str, list[str]] = {
         "Persist structured recipe JSON files",
         "Record recipe option events",
     ],
+    "repos.summarize": [
+        "Parse GitHub repository URL",
+        "Fetch repository metadata, README, languages, and tree",
+        "Infer technology stack and important paths",
+        "Write structured Markdown repository report",
+        "Record repository insight events",
+    ],
 }
 
 

@@ -12,6 +12,7 @@ from .events import load_events, tail_events
 from .papers import list_paper_notes
 from .paths import REPO_ROOT
 from .recipes import list_recipe_reports
+from .repos import list_repo_reports
 from .runtime import HarnessRuntime
 from .skills import load_skills
 from .tasks import claim_task, complete_task, create_task, get_task, load_tasks
@@ -259,6 +260,26 @@ def list_recipe_reports_command(args: argparse.Namespace) -> int:
     return 0
 
 
+def summarize_repo_command(args: argparse.Namespace) -> int:
+    try:
+        result = HarnessRuntime(events_path=args.events_path).run(
+            "repos.summarize",
+            github_url=args.github_url,
+            output_dir=args.output_dir,
+        )
+    except (RuntimeError, ValueError, KeyError) as exc:
+        print(str(exc))
+        return 1
+    print(f"Generated repo report: {_rel(Path(result.artifacts['report_path']))}")
+    return 0
+
+
+def list_repo_reports_command(args: argparse.Namespace) -> int:
+    rows = [[path.stem, _rel(path)] for path in list_repo_reports(args.output_dir)]
+    _print_table(["Repository", "Report"], rows)
+    return 0
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         prog="agent_lab",
@@ -423,6 +444,30 @@ def build_parser() -> argparse.ArgumentParser:
     recipes_list = recipes_sub.add_parser("list", help="List generated recipe reports")
     recipes_list.set_defaults(func=list_recipe_reports_command)
 
+    repos_parser = subparsers.add_parser("repos", help="Generate GitHub repository reports")
+    repos_parser.add_argument(
+        "--output-dir",
+        type=Path,
+        default=None,
+        help=argparse.SUPPRESS,
+    )
+    repos_parser.add_argument(
+        "--events-path",
+        type=Path,
+        default=None,
+        help=argparse.SUPPRESS,
+    )
+    repos_sub = repos_parser.add_subparsers(dest="action", required=True)
+    repos_summarize = repos_sub.add_parser(
+        "summarize",
+        help="Generate a developer-focused report from a public GitHub repository URL",
+    )
+    repos_summarize.add_argument("github_url", help="GitHub repository URL")
+    repos_summarize.set_defaults(func=summarize_repo_command)
+
+    repos_list = repos_sub.add_parser("list", help="List generated GitHub repository reports")
+    repos_list.set_defaults(func=list_repo_reports_command)
+
     return parser
 
 
@@ -442,6 +487,10 @@ def main(argv: Sequence[str] | None = None) -> int:
             from .paths import RECIPES_OUTPUT_DIR
 
             args.output_dir = RECIPES_OUTPUT_DIR
+        elif getattr(args, "resource", "") == "repos":
+            from .paths import GITHUB_REPORTS_OUTPUT_DIR
+
+            args.output_dir = GITHUB_REPORTS_OUTPUT_DIR
         else:
             from .paths import PAPERS_OUTPUT_DIR
 

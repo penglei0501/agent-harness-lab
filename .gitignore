@@ -201,6 +201,7 @@ cython_debug/
 papers/input/
 papers/output/
 recipes/output/
+github_reports/output/
 
 # Ruff stuff:
 .ruff_cache/
