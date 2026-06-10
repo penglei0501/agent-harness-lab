@@ -130,6 +130,15 @@ def test_generate_markdown_report_has_contextual_improvement_suggestions() -> No
     assert "为核心模块补充测试和最小可运行示例" not in report
 
 
+def test_generate_markdown_report_avoids_false_positive_project_context() -> None:
+    report = generate_markdown_report(sample_snapshot())
+
+    assert "Agent workflow" in report
+    assert "AI Agent 浏览器自动化" not in report
+    assert "RAG 信号" not in report
+    assert "针对 `agent_demo/runtime.py`" in report
+
+
 def test_summarize_github_repo_writes_report_and_events(tmp_path: Path) -> None:
     events_path = tmp_path / "events.jsonl"
     output_dir = tmp_path / "repo-reports"

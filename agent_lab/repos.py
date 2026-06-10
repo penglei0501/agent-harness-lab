@@ -222,20 +222,23 @@ def extract_readme_commands(readme: str, limit: int = 12) -> list[str]:
 
 def infer_project_context(snapshot: RepoSnapshot) -> list[str]:
     """Infer concrete use-case bullets from metadata and repository signals."""
-    haystack = " ".join(
-        [
-            snapshot.description,
-            " ".join(snapshot.topics),
-            snapshot.readme,
-            " ".join(snapshot.tree_paths),
-        ]
-    ).lower()
+    topics = {topic.lower() for topic in snapshot.topics}
+    description = snapshot.description.lower()
+    readme = snapshot.readme.lower()
+    path_text = " ".join(snapshot.tree_paths).lower()
+    haystack = " ".join([description, " ".join(topics), readme, path_text])
     contexts: list[str] = []
-    if "browser" in haystack and ("agent" in haystack or "llm" in haystack):
+    has_browser_automation = (
+        "browser-automation" in topics
+        or "browser automation" in haystack
+        or "control browser" in haystack
+        or "browser_use/" in path_text
+    )
+    if has_browser_automation and ("agent" in haystack or "llm" in haystack):
         contexts.append("面向 AI Agent 浏览器自动化场景，适合网页操作、在线任务执行和页面信息提取。")
     if "agent" in haystack:
         contexts.append("包含 Agent workflow 信号，适合观察任务规划、工具调用和运行时组织方式。")
-    if "rag" in haystack:
+    if re.search(r"\brag\b", haystack):
         contexts.append("包含 RAG 信号，适合分析检索增强生成的数据流和组件边界。")
     if "next" in haystack or "react" in haystack:
         contexts.append("包含 Web 应用信号，适合分析前端页面、API 路由和交互流程。")
@@ -359,6 +362,15 @@ def infer_improvement_suggestions(snapshot: RepoSnapshot, path_descriptions: lis
     commands = extract_readme_commands(snapshot.readme)
     suggestions: list[str] = []
 
+    runtime_item = next((item for item in path_descriptions if "runtime.py" in item), "")
+    tools_item = next((item for item in path_descriptions if "tools.py" in item), "")
+
+    if runtime_item:
+        runtime_label = runtime_item.split("：", 1)[0]
+        suggestions.append(f"针对 {runtime_label} 补充 Harness Runtime 执行流程图，说明 planner、tool registry、skill selection 和 event log 的调用顺序。")
+    if tools_item:
+        tools_label = tools_item.split("：", 1)[0]
+        suggestions.append(f"围绕 {tools_label} 补充工具注册表说明，列出 action 名称、输入参数、输出产物和错误处理方式。")
     if any("agent/" in item for item in path_descriptions):
         agent_label = next(
             item.split("：", 1)[0]
@@ -366,7 +378,7 @@ def infer_improvement_suggestions(snapshot: RepoSnapshot, path_descriptions: lis
             if "agent/" in item
         )
         suggestions.append(f"针对 {agent_label} 补充架构图或执行流程图，说明任务计划、prompt、消息管理和工具调用之间的关系。")
-    elif path_descriptions:
+    elif path_descriptions and not runtime_item and not tools_item:
         first_label = path_descriptions[0].split("：", 1)[0]
         suggestions.append(f"围绕 {first_label} 补充模块职责说明，帮助读者从目录结构进入核心代码。")
 
