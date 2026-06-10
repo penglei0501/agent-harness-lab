@@ -353,6 +353,60 @@ def infer_risks(snapshot: RepoSnapshot) -> list[str]:
     return risks
 
 
+def infer_improvement_suggestions(snapshot: RepoSnapshot, path_descriptions: list[str]) -> list[str]:
+    """Generate repository-specific engineering improvement suggestions."""
+    paths = "\n".join(snapshot.tree_paths).lower()
+    commands = extract_readme_commands(snapshot.readme)
+    suggestions: list[str] = []
+
+    if any("agent/" in item for item in path_descriptions):
+        agent_label = next(
+            item.split("：", 1)[0]
+            for item in path_descriptions
+            if "agent/" in item
+        )
+        suggestions.append(f"针对 {agent_label} 补充架构图或执行流程图，说明任务计划、prompt、消息管理和工具调用之间的关系。")
+    elif path_descriptions:
+        first_label = path_descriptions[0].split("：", 1)[0]
+        suggestions.append(f"围绕 {first_label} 补充模块职责说明，帮助读者从目录结构进入核心代码。")
+
+    has_tests = "test" in paths
+    has_ci = ".github/workflows" in paths
+    has_examples = "examples/" in paths
+    has_docker = "dockerfile" in paths or "docker-compose" in paths
+
+    if has_tests:
+        suggestions.append("在现有测试基础上补充关键路径覆盖说明，标明哪些模块已有单元测试、集成测试或端到端测试。")
+    else:
+        suggestions.append("补充最小测试示例，优先覆盖核心模块的输入输出和错误处理。")
+
+    if has_examples:
+        suggestions.append("整理 examples 目录中的典型用例，按入门、进阶和真实场景分层组织。")
+    else:
+        suggestions.append("增加最小可运行示例，降低新用户理解和验证项目行为的成本。")
+
+    if commands:
+        suggestions.append("将 README 中的安装、初始化和运行命令整理成 Quick Start，减少用户从长文档中查找命令的成本。")
+    else:
+        suggestions.append("补充清晰的安装、配置和启动命令，最好提供可复制的 Quick Start。")
+
+    if has_ci and has_docker:
+        suggestions.append("把 CI、Docker 和发布流程之间的关系写清楚，方便开发者理解本地运行与线上构建的差异。")
+    elif has_ci:
+        suggestions.append("说明 CI workflow 的触发条件和检查内容，方便贡献者理解质量门禁。")
+    elif has_docker:
+        suggestions.append("补充 Docker 使用场景，说明它适合开发、测试还是部署。")
+
+    if snapshot.open_issues > 100:
+        suggestions.append("对 Open Issues 进行分类，例如 bug、feature、documentation 和 question，降低维护和检索成本。")
+
+    unique: list[str] = []
+    for suggestion in suggestions:
+        if suggestion not in unique:
+            unique.append(suggestion)
+    return unique[:6]
+
+
 def _readme_preview(readme: str) -> str:
     compact = re.sub(r"\s+", " ", _clean_readme_text(readme)).strip()
     return textwrap.shorten(compact, width=800, placeholder="...") if compact else "README 未获取到内容。"
@@ -377,6 +431,7 @@ def generate_markdown_report(snapshot: RepoSnapshot) -> str:
     important_paths = pick_important_paths(snapshot.tree_paths)
     path_descriptions = describe_important_paths(important_paths)
     project_context = infer_project_context(snapshot)
+    suggestions = infer_improvement_suggestions(snapshot, path_descriptions)
     topics = ", ".join(snapshot.topics) if snapshot.topics else "暂无 topics"
     license_name = snapshot.license_name or "未声明"
 
@@ -427,10 +482,7 @@ def generate_markdown_report(snapshot: RepoSnapshot) -> str:
 
 ## 10. 后续改进建议
 
-- 补充更清晰的安装、运行和配置说明。
-- 为核心模块补充测试和最小可运行示例。
-- 在 README 中增加架构图或模块职责说明。
-- 如果项目依赖外部服务，建议提供 `.env.example` 和配置说明。
+{chr(10).join(f"- {item}" for item in suggestions)}
 """
 
 

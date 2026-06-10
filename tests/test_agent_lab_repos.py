@@ -119,6 +119,17 @@ def test_generate_markdown_report_extracts_commands_and_explains_paths() -> None
     assert "README 通常用于说明" not in report
 
 
+def test_generate_markdown_report_has_contextual_improvement_suggestions() -> None:
+    report = generate_markdown_report(browser_style_snapshot())
+
+    assert "## 10. 后续改进建议" in report
+    assert "针对 `browser_use/agent/`" in report
+    assert "补充架构图或执行流程图" in report
+    assert "对 Open Issues 进行分类" in report
+    assert "补充更清晰的安装、运行和配置说明" not in report
+    assert "为核心模块补充测试和最小可运行示例" not in report
+
+
 def test_summarize_github_repo_writes_report_and_events(tmp_path: Path) -> None:
     events_path = tmp_path / "events.jsonl"
     output_dir = tmp_path / "repo-reports"
