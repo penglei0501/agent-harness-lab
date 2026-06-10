@@ -41,6 +41,24 @@ def sample_snapshot() -> RepoSnapshot:
             "tests/test_runtime.py",
             ".github/workflows/ci.yml",
         ],
+        file_contents={
+            "agent_demo/runtime.py": (
+                "from dataclasses import dataclass\n\n"
+                "@dataclass\n"
+                "class HarnessResult:\n"
+                "    status: str\n\n"
+                "class HarnessRuntime:\n"
+                "    def run(self, action: str):\n"
+                "        return action\n"
+            ),
+            "agent_demo/tools.py": (
+                "def default_tool_registry():\n"
+                "    registry.register('papers.read', 'Read paper', read_paper)\n"
+                "    registry.register('repos.summarize', 'Summarize repo', summarize_repo)\n"
+                "    return registry\n"
+            ),
+            "requirements.txt": "pytest\nrequests\n",
+        },
     )
 
 
@@ -100,6 +118,19 @@ def test_generate_markdown_report_is_developer_focused() -> None:
     assert "pytest / test" in report
     assert "简历" not in report
     assert "面试" not in report
+
+
+def test_generate_markdown_report_uses_key_file_content_for_module_analysis() -> None:
+    report = generate_markdown_report(sample_snapshot())
+
+    assert "## 6. 核心模块分析" in report
+    assert "`agent_demo/runtime.py`：Python 模块" in report
+    assert "类：HarnessResult, HarnessRuntime" in report
+    assert "函数：run" in report
+    assert "`agent_demo/tools.py`：Python 模块" in report
+    assert "注册 action：papers.read, repos.summarize" in report
+    assert "`requirements.txt`：依赖文件" in report
+    assert "pytest, requests" in report
 
 
 def test_generate_markdown_report_extracts_commands_and_explains_paths() -> None:

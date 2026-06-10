@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import base64
 from collections.abc import Callable
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 import json
 import os
 from pathlib import Path
@@ -12,7 +12,7 @@ import re
 import textwrap
 from typing import Any
 from urllib.error import HTTPError
-from urllib.parse import urlparse
+from urllib.parse import quote, urlparse
 from urllib.request import Request, urlopen
 
 from .events import append_event
@@ -42,6 +42,7 @@ class RepoSnapshot:
     languages: dict[str, int]
     readme: str
     tree_paths: list[str]
+    file_contents: dict[str, str] = field(default_factory=dict)
 
 
 @dataclass(frozen=True)
@@ -112,6 +113,59 @@ def fetch_tree(owner: str, repo: str, branch: str) -> list[str]:
     ]
 
 
+def fetch_file_content(owner: str, repo: str, path: str, branch: str) -> str:
+    """Fetch one UTF-8 text file from a repository."""
+    encoded_path = quote(path, safe="/")
+    data = github_get(f"/repos/{owner}/{repo}/contents/{encoded_path}?ref={quote(branch)}")
+    if not isinstance(data, dict):
+        return ""
+    if data.get("type") != "file":
+        return ""
+    if int(data.get("size") or 0) > 80_000:
+        return ""
+    content = str(data.get("content") or "")
+    if data.get("encoding") == "base64" and content:
+        return base64.b64decode(content).decode("utf-8", errors="ignore")
+    return ""
+
+
+def select_key_file_paths(paths: list[str], limit: int = 8) -> list[str]:
+    """Select small, high-signal source/config files for file-level analysis."""
+    priority_patterns = [
+        r"(^|/)runtime\.py$",
+        r"(^|/)tools\.py$",
+        r"(^|/)cli\.py$",
+        r"(^|/)__main__\.py$",
+        r"(^|/)package\.json$",
+        r"(^|/)pyproject\.toml$",
+        r"(^|/)requirements\.txt$",
+        r"(^|/)next\.config\.(js|ts|mjs)$",
+        r"(^|/)Dockerfile$",
+    ]
+    selected: list[str] = []
+    for pattern in priority_patterns:
+        regex = re.compile(pattern, re.IGNORECASE)
+        for path in paths:
+            if regex.search(path) and path not in selected:
+                selected.append(path)
+            if len(selected) >= limit:
+                return selected
+    return selected
+
+
+def fetch_key_file_contents(owner: str, repo: str, branch: str, paths: list[str]) -> dict[str, str]:
+    """Fetch selected key file contents, skipping files that cannot be decoded."""
+    contents: dict[str, str] = {}
+    for path in select_key_file_paths(paths):
+        try:
+            content = fetch_file_content(owner, repo, path, branch)
+        except (RuntimeError, HTTPError, OSError):
+            continue
+        if content.strip():
+            contents[path] = content
+    return contents
+
+
 def fetch_repo_snapshot(github_url: str) -> RepoSnapshot:
     """Fetch metadata needed to generate a developer-focused repository report."""
     repo_id = parse_github_url(github_url)
@@ -119,6 +173,7 @@ def fetch_repo_snapshot(github_url: str) -> RepoSnapshot:
     languages = github_get(f"/repos/{repo_id.owner}/{repo_id.repo}/languages")
     default_branch = str(repo_data.get("default_branch") or "main")
     license_info = repo_data.get("license") or {}
+    tree_paths = fetch_tree(repo_id.owner, repo_id.repo, default_branch)
 
     return RepoSnapshot(
         owner=repo_id.owner,
@@ -133,7 +188,8 @@ def fetch_repo_snapshot(github_url: str) -> RepoSnapshot:
         topics=[str(topic) for topic in repo_data.get("topics", [])],
         languages={str(key): int(value) for key, value in dict(languages or {}).items()},
         readme=fetch_readme(repo_id.owner, repo_id.repo),
-        tree_paths=fetch_tree(repo_id.owner, repo_id.repo, default_branch),
+        tree_paths=tree_paths,
+        file_contents=fetch_key_file_contents(repo_id.owner, repo_id.repo, default_branch, tree_paths),
     )
 
 
@@ -297,6 +353,89 @@ def describe_important_paths(paths: list[str], limit: int = 14) -> list[str]:
     return descriptions
 
 
+def _extract_python_symbols(content: str) -> tuple[list[str], list[str]]:
+    classes = re.findall(r"(?m)^class\s+([A-Za-z_][A-Za-z0-9_]*)", content)
+    functions = re.findall(r"(?m)^\s*def\s+([A-Za-z_][A-Za-z0-9_]*)\s*\(", content)
+    return classes[:6], functions[:8]
+
+
+def _extract_registered_actions(content: str) -> list[str]:
+    actions = re.findall(r"register\(\s*['\"]([^'\"]+)['\"]", content)
+    return list(dict.fromkeys(actions))[:10]
+
+
+def _extract_package_scripts(content: str) -> list[str]:
+    try:
+        data = json.loads(content)
+    except json.JSONDecodeError:
+        return []
+    scripts = data.get("scripts", {})
+    if not isinstance(scripts, dict):
+        return []
+    return [f"{name}: {command}" for name, command in list(scripts.items())[:8]]
+
+
+def _extract_requirements(content: str) -> list[str]:
+    requirements: list[str] = []
+    for line in content.splitlines():
+        item = line.strip()
+        if not item or item.startswith("#") or item.startswith("-"):
+            continue
+        package = re.split(r"[<>=~!;\[]", item, maxsplit=1)[0].strip()
+        if package:
+            requirements.append(package)
+        if len(requirements) >= 10:
+            break
+    return requirements
+
+
+def summarize_key_file(path: str, content: str) -> str:
+    """Summarize one fetched key file using lightweight static signals."""
+    lower = path.lower()
+    if lower.endswith(".py"):
+        classes, functions = _extract_python_symbols(content)
+        actions = _extract_registered_actions(content)
+        details: list[str] = []
+        if classes:
+            details.append(f"类：{', '.join(classes)}")
+        if functions:
+            details.append(f"函数：{', '.join(functions)}")
+        if actions:
+            details.append(f"注册 action：{', '.join(actions)}")
+        if not details:
+            details.append("未识别到明显的类或函数定义")
+        return f"`{path}`：Python 模块，" + "；".join(details) + "。"
+
+    if lower.endswith("package.json"):
+        scripts = _extract_package_scripts(content)
+        if scripts:
+            return f"`{path}`：Node/前端配置文件，脚本：{'; '.join(scripts)}。"
+        return f"`{path}`：Node/前端配置文件。"
+
+    if lower.endswith("requirements.txt"):
+        requirements = _extract_requirements(content)
+        if requirements:
+            return f"`{path}`：依赖文件，主要依赖：{', '.join(requirements)}。"
+        return f"`{path}`：Python 依赖文件。"
+
+    if lower.endswith("pyproject.toml"):
+        return f"`{path}`：Python 项目配置文件，可用于判断构建系统、依赖和工具配置。"
+
+    if "dockerfile" in lower:
+        return f"`{path}`：Docker 构建文件，可用于分析运行镜像、系统依赖和启动方式。"
+
+    return f"`{path}`：关键文件，建议结合内容继续阅读。"
+
+
+def summarize_key_files(file_contents: dict[str, str], limit: int = 8) -> list[str]:
+    """Summarize fetched key files in a stable order."""
+    return [
+        summarize_key_file(path, content)
+        for path, content in list(file_contents.items())[:limit]
+        if content.strip()
+    ]
+
+
 def infer_tech_stack(snapshot: RepoSnapshot) -> list[str]:
     paths = "\n".join(snapshot.tree_paths).lower()
     readme = snapshot.readme.lower()
@@ -442,6 +581,7 @@ def generate_markdown_report(snapshot: RepoSnapshot) -> str:
     tech_stack = infer_tech_stack(snapshot)
     important_paths = pick_important_paths(snapshot.tree_paths)
     path_descriptions = describe_important_paths(important_paths)
+    file_summaries = summarize_key_files(snapshot.file_contents)
     project_context = infer_project_context(snapshot)
     suggestions = infer_improvement_suggestions(snapshot, path_descriptions)
     topics = ", ".join(snapshot.topics) if snapshot.topics else "暂无 topics"
@@ -478,7 +618,7 @@ def generate_markdown_report(snapshot: RepoSnapshot) -> str:
 
 ## 6. 核心模块分析
 
-{chr(10).join(f"- {item}" for item in path_descriptions[:8]) if path_descriptions else "- 当前只能从 README、语言统计和目录树进行粗粒度分析，具体模块职责仍需要结合源码逐文件确认。"}
+{chr(10).join(f"- {item}" for item in file_summaries) if file_summaries else chr(10).join(f"- {item}" for item in path_descriptions[:8]) if path_descriptions else "- 当前只能从 README、语言统计和目录树进行粗粒度分析，具体模块职责仍需要结合源码逐文件确认。"}
 
 ## 7. 主要运行流程
 
