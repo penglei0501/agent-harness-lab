@@ -9,9 +9,10 @@ from pathlib import Path
 from .demo import seed_demo_data
 from .docs import load_docs
 from .events import load_events, tail_events
-from .papers import generate_notes_for_folder, generate_paper_note, list_paper_notes
+from .papers import list_paper_notes
 from .paths import REPO_ROOT
-from .recipes import list_recipe_reports, suggest_recipe, suggest_recipe_options
+from .recipes import list_recipe_reports
+from .runtime import HarnessRuntime
 from .skills import load_skills
 from .tasks import claim_task, complete_task, create_task, get_task, load_tasks
 
@@ -170,34 +171,35 @@ def seed_demo_command(args: argparse.Namespace) -> int:
 
 def read_paper_command(args: argparse.Namespace) -> int:
     try:
-        note = generate_paper_note(
-            args.paper_path,
+        result = HarnessRuntime(events_path=args.events_path).run(
+            "papers.read",
+            paper_path=args.paper_path,
             output_dir=args.output_dir,
-            events_path=args.events_path,
         )
-    except (FileNotFoundError, RuntimeError, ValueError) as exc:
+    except (FileNotFoundError, RuntimeError, ValueError, KeyError) as exc:
         print(str(exc))
         return 1
-    print(f"Generated paper note: {_rel(note.note_path)}")
+    print(f"Generated paper note: {_rel(Path(result.artifacts['note_path']))}")
     return 0
 
 
 def read_paper_folder_command(args: argparse.Namespace) -> int:
     try:
-        notes = generate_notes_for_folder(
-            args.folder_path,
+        result = HarnessRuntime(events_path=args.events_path).run(
+            "papers.read_folder",
+            folder_path=args.folder_path,
             output_dir=args.output_dir,
-            events_path=args.events_path,
         )
-    except (FileNotFoundError, NotADirectoryError, RuntimeError, ValueError) as exc:
+    except (FileNotFoundError, NotADirectoryError, RuntimeError, ValueError, KeyError) as exc:
         print(str(exc))
         return 1
-    if not notes:
+    note_paths = [Path(path) for path in result.artifacts["note_paths"]]
+    if not note_paths:
         print("No supported paper files found.")
         return 0
-    print(f"Generated {len(notes)} paper notes:")
-    for note in notes:
-        print(f"- {_rel(note.note_path)}")
+    print(f"Generated {len(note_paths)} paper notes:")
+    for note_path in note_paths:
+        print(f"- {_rel(note_path)}")
     return 0
 
 
@@ -209,27 +211,29 @@ def list_paper_notes_command(args: argparse.Namespace) -> int:
 
 def suggest_recipe_command(args: argparse.Namespace) -> int:
     try:
-        report = suggest_recipe(
-            args.ingredients,
+        result = HarnessRuntime(events_path=args.events_path).run(
+            "recipes.suggest",
+            ingredients=args.ingredients,
             servings=args.servings,
             time_minutes=args.time,
             taste=args.taste,
             avoid=args.avoid,
             tools=args.tools,
             output_dir=args.output_dir,
-            events_path=args.events_path,
         )
     except ValueError as exc:
         print(str(exc))
         return 1
+    report = result.output
     print(f"Generated recipe report: {_rel(report.path) if report.path else report.title}")
     return 0
 
 
 def suggest_recipe_options_command(args: argparse.Namespace) -> int:
     try:
-        reports = suggest_recipe_options(
-            args.ingredients,
+        result = HarnessRuntime(events_path=args.events_path).run(
+            "recipes.suggest_options",
+            ingredients=args.ingredients,
             servings=args.servings,
             time_minutes=args.time,
             taste=args.taste,
@@ -237,11 +241,11 @@ def suggest_recipe_options_command(args: argparse.Namespace) -> int:
             tools=args.tools,
             limit=args.limit,
             output_dir=args.output_dir,
-            events_path=args.events_path,
         )
     except ValueError as exc:
         print(str(exc))
         return 1
+    reports = result.output
     print(f"Generated {len(reports)} recipe options:")
     for report in reports:
         reason = f" - {report.recommendation_reason}" if report.recommendation_reason else ""

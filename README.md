@@ -24,6 +24,7 @@ The model reasons and decides. The harness provides the observable, executable, 
 
 - Minimal agent loop with multi-turn `tool_use -> tool_result -> continue` execution.
 - Tool registration and dispatch layer for shell commands, file operations, editing, task management, and skill loading.
+- Unified `HarnessRuntime` for action planning, skill selection, registered tool execution, artifact collection, and event capture.
 - Persistent Todo and task systems for multi-step planning, dependency tracking, status transitions, and long-running goals.
 - `agent_lab` CLI for local task, event, skill, doc, paper assistant, and recipe assistant workflows.
 - JSONL event log for task lifecycle events, paper report generation, and recipe option generation.
@@ -40,7 +41,7 @@ The model reasons and decides. The harness provides the observable, executable, 
 ```text
 .
 ├── agents/                  # 12 progressive Agent Harness examples + full reference
-├── agent_lab/               # Project-specific Agent Harness Lab CLI
+├── agent_lab/               # Project-specific runtime, tool registry, planner, and CLI
 ├── docs/                    # English and Chinese learning content
 ├── papers/                  # Local paper input and report output directories
 ├── recipes/                 # Local structured recipe JSON reports
@@ -53,6 +54,23 @@ The model reasons and decides. The harness provides the observable, executable, 
 ├── requirements.txt         # Python dependencies
 └── README.zh-CN.md          # Chinese documentation
 ```
+
+## Harness Runtime
+
+The project now routes domain workflows through a small shared runtime instead of calling feature modules directly:
+
+```text
+CLI / Web API
+  -> HarnessRuntime
+  -> Planner
+  -> Skill selection
+  -> Tool registry
+  -> Paper / Recipe tool
+  -> Artifact writer
+  -> JSONL event log
+```
+
+This keeps the paper assistant and recipe assistant under the same harness contract. Each action has a plan, a related skill set, a registered local tool, generated artifacts, and captured runtime events.
 
 ## Learning Path
 

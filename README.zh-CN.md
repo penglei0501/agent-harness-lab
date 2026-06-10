@@ -24,6 +24,7 @@ Harness = Tools
 
 - 最小 Agent Loop 支持 `tool_use -> tool_result -> continue` 的多轮工具调用流程。
 - 工具注册与分发机制将 shell、文件读写、编辑、任务管理等能力抽象为可组合工具。
+- 统一 `HarnessRuntime` 串联任务计划、Skill 选择、工具注册、执行产物收集和事件记录。
 - Todo 与持久化任务系统支持多步任务规划、任务依赖、状态流转和长期目标管理。
 - `agent_lab` CLI 提供任务、事件、技能、文档、论文助手和食谱助手的本地操作入口。
 - JSONL 事件日志记录任务创建、认领、完成、论文报告生成和食谱方案生成等运行时事件。
@@ -39,7 +40,7 @@ Harness = Tools
 ```text
 .
 ├── agents/                  # 12 个递进式 Agent Harness 示例 + 综合实现
-├── agent_lab/               # 个人扩展的 Agent Harness Lab CLI
+├── agent_lab/               # 个人扩展的 runtime、工具注册、planner 和 CLI
 ├── docs/                    # 中英文课程内容源
 ├── papers/                  # 本地论文输入与报告输出目录，可按需创建
 ├── recipes/                 # 本地结构化食谱 JSON 报告
@@ -50,6 +51,23 @@ Harness = Tools
 ├── requirements.txt         # Python 依赖
 └── README.md                # 英文说明
 ```
+
+## Harness Runtime
+
+项目现在把领域工作流统一接入一个轻量 runtime，而不是让 CLI 或 Web API 直接调用各个功能模块：
+
+```text
+CLI / Web API
+  -> HarnessRuntime
+  -> Planner
+  -> Skill selection
+  -> Tool registry
+  -> Paper / Recipe tool
+  -> Artifact writer
+  -> JSONL event log
+```
+
+这样论文助手和食谱助手都遵循同一套 Harness 契约：每个 action 都有执行计划、关联 Skill、注册工具、输出产物和运行时事件记录。
 
 ## 学习路径
 

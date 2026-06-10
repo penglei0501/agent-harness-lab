@@ -8,6 +8,7 @@ from agent_lab.docs import load_docs
 from agent_lab.events import append_event, load_events, tail_events
 from agent_lab.papers import generate_notes_for_folder, generate_paper_note
 from agent_lab.recipes import list_recipe_reports, suggest_recipe, suggest_recipe_options
+from agent_lab.runtime import HarnessRuntime
 from agent_lab.skills import load_skills
 from agent_lab.tasks import claim_task, complete_task, create_task, load_tasks
 
@@ -458,3 +459,69 @@ def test_cli_recipes_suggest_options(tmp_path: Path, capsys) -> None:
     assert "Generated 3 recipe options" in generated.out
     assert "tomato-egg-rice-bowl" in generated.out
     assert len(list_recipe_reports(tmp_path)) == 3
+
+
+def test_harness_runtime_runs_paper_reading_with_plan_skills_and_events(tmp_path: Path) -> None:
+    paper_path = tmp_path / "paper.md"
+    output_dir = tmp_path / "paper-notes"
+    events_path = tmp_path / "events.jsonl"
+    skills_dir = tmp_path / "skills"
+    skill_dir = skills_dir / "paper-reading"
+    skill_dir.mkdir(parents=True)
+    (skill_dir / "SKILL.md").write_text(
+        """---
+name: paper-reading
+description: Read academic papers into structured research notes.
+---
+
+# Paper Reading
+""",
+        encoding="utf-8",
+    )
+    paper_path.write_text(
+        "# Runtime Harness Paper\n\nAbstract\nA runtime coordinates tools and skills.",
+        encoding="utf-8",
+    )
+
+    runtime = HarnessRuntime(skills_dir=skills_dir, events_path=events_path)
+    result = runtime.run(
+        "papers.read",
+        paper_path=paper_path,
+        output_dir=output_dir,
+    )
+
+    assert result.action == "papers.read"
+    assert result.status == "completed"
+    assert result.plan == [
+        "Read paper text",
+        "Extract coarse research sections",
+        "Write structured Markdown note",
+        "Record paper reading events",
+    ]
+    assert result.skills == ["paper-reading"]
+    assert result.artifacts["note_path"].endswith("paper.md")
+    assert Path(result.artifacts["note_path"]).exists()
+    assert result.events == ["paper_read", "paper_note_generated"]
+
+
+def test_harness_runtime_runs_recipe_options_with_registered_tool(tmp_path: Path) -> None:
+    output_dir = tmp_path / "recipes"
+    events_path = tmp_path / "events.jsonl"
+    runtime = HarnessRuntime(events_path=events_path)
+
+    result = runtime.run(
+        "recipes.suggest_options",
+        ingredients="鸡蛋,番茄,米饭",
+        servings=1,
+        time_minutes=20,
+        taste="家常",
+        output_dir=output_dir,
+    )
+
+    assert result.action == "recipes.suggest_options"
+    assert result.status == "completed"
+    assert result.plan[0] == "Parse available ingredients and constraints"
+    assert "recipe-planning" in result.skills
+    assert len(result.artifacts["recipe_paths"]) == 3
+    assert all(Path(path).exists() for path in result.artifacts["recipe_paths"])
+    assert result.events == ["recipe_options_requested", "recipe_options_generated"]
