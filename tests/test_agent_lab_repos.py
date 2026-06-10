@@ -44,6 +44,45 @@ def sample_snapshot() -> RepoSnapshot:
     )
 
 
+def browser_style_snapshot() -> RepoSnapshot:
+    return RepoSnapshot(
+        owner="browser-use",
+        repo="browser-use",
+        html_url="https://github.com/browser-use/browser-use",
+        description="Make websites accessible for AI agents.",
+        stars=98002,
+        forks=10936,
+        open_issues=280,
+        default_branch="main",
+        license_name="MIT License",
+        topics=["ai-agents", "browser-automation", "llm", "playwright", "python"],
+        languages={"Python": 9000, "Dockerfile": 300, "Shell": 200},
+        readme=(
+            "<picture><source srcset='logo-dark.png'><img src='logo.png'></picture>\n\n"
+            "# Browser Use\n\n"
+            "Make websites accessible for AI agents.\n\n"
+            "Python API -> Rust core -> Browser harness -> Web task done\n\n"
+            "```bash\n"
+            "pip install browser-use\n"
+            "playwright install chromium\n"
+            "python examples/simple.py\n"
+            "```\n\n"
+            "The agent observes browser state and executes actions online."
+        ),
+        tree_paths=[
+            "README.md",
+            "Dockerfile",
+            ".github/workflows/test.yaml",
+            "browser_use/agent/service.py",
+            "browser_use/agent/prompts.py",
+            "browser_use/browser/session.py",
+            "browser_use/actor/service.py",
+            "examples/simple.py",
+            "tests/test_agent.py",
+        ],
+    )
+
+
 def test_parse_github_url_accepts_common_repo_urls() -> None:
     assert parse_github_url("https://github.com/example/agent-demo").owner == "example"
     assert parse_github_url("https://github.com/example/agent-demo.git").repo == "agent-demo"
@@ -61,6 +100,23 @@ def test_generate_markdown_report_is_developer_focused() -> None:
     assert "pytest / test" in report
     assert "简历" not in report
     assert "面试" not in report
+
+
+def test_generate_markdown_report_extracts_commands_and_explains_paths() -> None:
+    report = generate_markdown_report(browser_style_snapshot())
+
+    assert "AI Agent" in report
+    assert "浏览器自动化" in report
+    assert "`browser_use/agent/`：Agent 核心模块" in report
+    assert "`browser_use/browser/`：浏览器会话或页面状态管理相关模块" in report
+    assert "`browser_use/actor/`：动作执行或浏览器操作封装相关模块" in report
+    assert "```bash\npip install browser-use" in report
+    assert "playwright install chromium" in report
+    assert "python examples/simple.py" in report
+    assert "Python API -> Rust core" not in report
+    assert "<picture>" not in report
+    assert "srcset" not in report
+    assert "README 通常用于说明" not in report
 
 
 def test_summarize_github_repo_writes_report_and_events(tmp_path: Path) -> None:

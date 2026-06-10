@@ -156,6 +156,10 @@ def pick_important_paths(paths: list[str], limit: int = 40) -> list[str]:
         "src/",
         "app/",
         "agent",
+        "browser",
+        "actor",
+        "runtime",
+        "tools",
         "server/",
         "api/",
         "docs/",
@@ -165,6 +169,129 @@ def pick_important_paths(paths: list[str], limit: int = 40) -> list[str]:
     ]
     selected = [path for path in paths if any(keyword in path.lower() for keyword in keywords)]
     return selected[:limit]
+
+
+def _clean_readme_text(readme: str) -> str:
+    text = re.sub(r"(?is)<picture.*?</picture>", " ", readme)
+    text = re.sub(r"(?is)<svg.*?</svg>", " ", text)
+    text = re.sub(r"(?is)<img\b[^>]*>", " ", text)
+    text = re.sub(r"(?is)<source\b[^>]*>", " ", text)
+    text = re.sub(r"(?is)<[^>]+>", " ", text)
+    text = re.sub(r"!\[[^\]]*]\([^)]*\)", " ", text)
+    text = re.sub(r"\[!\[[^\]]*]\([^)]*\)]\([^)]*\)", " ", text)
+    return re.sub(r"\n{3,}", "\n\n", text).strip()
+
+
+def extract_readme_commands(readme: str, limit: int = 12) -> list[str]:
+    """Extract likely install/run commands from README text."""
+    cleaned = _clean_readme_text(readme)
+    command_prefixes = (
+        "pip ",
+        "uv ",
+        "poetry ",
+        "python ",
+        "python3 ",
+        "npm ",
+        "pnpm ",
+        "yarn ",
+        "bun ",
+        "npx ",
+        "docker ",
+        "docker-compose ",
+        "git clone ",
+        "cd ",
+        "pytest",
+        "playwright ",
+    )
+    commands: list[str] = []
+    for raw_line in cleaned.splitlines():
+        line = raw_line.strip()
+        line = re.sub(r"^(```\w*|```)$", "", line).strip()
+        line = re.sub(r"^[$>#]\s*", "", line).strip()
+        if not line or line.startswith("#"):
+            continue
+        lower_line = line.lower()
+        is_make_command = line.startswith("make ")
+        is_lowercase_command = line == lower_line and lower_line.startswith(command_prefixes)
+        if (is_lowercase_command or is_make_command) and line not in commands:
+            commands.append(line)
+        if len(commands) >= limit:
+            break
+    return commands
+
+
+def infer_project_context(snapshot: RepoSnapshot) -> list[str]:
+    """Infer concrete use-case bullets from metadata and repository signals."""
+    haystack = " ".join(
+        [
+            snapshot.description,
+            " ".join(snapshot.topics),
+            snapshot.readme,
+            " ".join(snapshot.tree_paths),
+        ]
+    ).lower()
+    contexts: list[str] = []
+    if "browser" in haystack and ("agent" in haystack or "llm" in haystack):
+        contexts.append("面向 AI Agent 浏览器自动化场景，适合网页操作、在线任务执行和页面信息提取。")
+    if "agent" in haystack:
+        contexts.append("包含 Agent workflow 信号，适合观察任务规划、工具调用和运行时组织方式。")
+    if "rag" in haystack:
+        contexts.append("包含 RAG 信号，适合分析检索增强生成的数据流和组件边界。")
+    if "next" in haystack or "react" in haystack:
+        contexts.append("包含 Web 应用信号，适合分析前端页面、API 路由和交互流程。")
+    if "docker" in haystack:
+        contexts.append("包含容器化信号，适合关注部署环境和服务编排方式。")
+    if not contexts:
+        contexts.append(f"面向需要理解、运行或复用 `{snapshot.repo}` 的开发者。")
+    return contexts
+
+
+def describe_important_paths(paths: list[str], limit: int = 14) -> list[str]:
+    """Explain important directories/files instead of only listing raw paths."""
+    descriptions: list[str] = []
+    seen_keys: set[str] = set()
+
+    def add(key: str, label: str, description: str) -> None:
+        if key not in seen_keys:
+            seen_keys.add(key)
+            descriptions.append(f"`{label}`：{description}")
+
+    for path in paths:
+        lower = path.lower()
+        parts = path.split("/")
+        segments = [part.lower() for part in parts]
+        if lower == "readme.md":
+            add("readme", "README.md", "项目说明、安装方式、快速开始和核心概念入口。")
+        elif lower in {"requirements.txt", "pyproject.toml", "package.json"}:
+            add(lower, path, "依赖管理和项目配置文件，可用于判断运行环境。")
+        elif lower.startswith(".github/workflows/"):
+            add("workflows", ".github/workflows/", "GitHub Actions 自动化流程，通常包含测试、构建、发布或检查任务。")
+        elif "dockerfile" in lower or "docker-compose" in lower:
+            add("docker", path, "容器化运行或部署相关配置。")
+        elif "agent" in segments and len(parts) >= 2:
+            add("agent", f"{parts[0]}/agent/", "Agent 核心模块，通常包含任务执行、prompt、消息管理或运行状态逻辑。")
+        elif "browser" in segments and len(parts) >= 2:
+            add("browser", f"{parts[0]}/browser/", "浏览器会话或页面状态管理相关模块。")
+        elif "actor" in segments and len(parts) >= 2:
+            add("actor", f"{parts[0]}/actor/", "动作执行或浏览器操作封装相关模块。")
+        elif lower.endswith("runtime.py"):
+            add(path, path, "运行时协调逻辑，通常负责串联计划、工具、事件或执行流程。")
+        elif lower.endswith("tools.py"):
+            add(path, path, "工具注册或工具函数集合，通常负责连接外部能力和内部执行逻辑。")
+        elif lower.startswith("src/"):
+            add("src", "src/", "主要源码目录。")
+        elif lower.startswith("app/"):
+            add("app", "app/", "应用入口或路由组织目录。")
+        elif lower.startswith("docs/"):
+            add("docs", "docs/", "项目文档目录。")
+        elif lower.startswith("examples/"):
+            add("examples", "examples/", "示例代码目录，适合理解典型用法。")
+        elif lower.startswith("tests/") or "/tests/" in lower or "test_" in lower:
+            add("tests", "tests/", "自动化测试目录或测试文件。")
+        if len(descriptions) >= limit:
+            break
+
+    return descriptions
 
 
 def infer_tech_stack(snapshot: RepoSnapshot) -> list[str]:
@@ -227,8 +354,20 @@ def infer_risks(snapshot: RepoSnapshot) -> list[str]:
 
 
 def _readme_preview(readme: str) -> str:
-    compact = re.sub(r"\s+", " ", readme).strip()
+    compact = re.sub(r"\s+", " ", _clean_readme_text(readme)).strip()
     return textwrap.shorten(compact, width=800, placeholder="...") if compact else "README 未获取到内容。"
+
+
+def _render_run_flow(readme: str) -> str:
+    commands = extract_readme_commands(readme)
+    if not commands:
+        return _readme_preview(readme)
+    command_block = "\n".join(commands)
+    return f"""README 中识别到以下安装或运行命令：
+
+```bash
+{command_block}
+```"""
 
 
 def generate_markdown_report(snapshot: RepoSnapshot) -> str:
@@ -236,6 +375,8 @@ def generate_markdown_report(snapshot: RepoSnapshot) -> str:
     languages = top_languages(snapshot.languages)
     tech_stack = infer_tech_stack(snapshot)
     important_paths = pick_important_paths(snapshot.tree_paths)
+    path_descriptions = describe_important_paths(important_paths)
+    project_context = infer_project_context(snapshot)
     topics = ", ".join(snapshot.topics) if snapshot.topics else "暂无 topics"
     license_name = snapshot.license_name or "未声明"
 
@@ -247,7 +388,7 @@ def generate_markdown_report(snapshot: RepoSnapshot) -> str:
 
 ## 2. 项目目标与使用场景
 
-根据仓库描述、README 和目录结构，这个项目主要面向需要理解、运行或复用 `{snapshot.repo}` 的开发者。V1 规则版只根据公开仓库元信息推断，不会编造 README 中没有出现的功能。
+{chr(10).join(f"- {item}" for item in project_context)}
 
 ## 3. 仓库基本信息
 
@@ -266,18 +407,15 @@ def generate_markdown_report(snapshot: RepoSnapshot) -> str:
 
 ## 5. 目录结构说明
 
-{chr(10).join(f"- `{path}`" for path in important_paths) if important_paths else "- 暂未识别到典型关键目录或配置文件。"}
+{chr(10).join(f"- {item}" for item in path_descriptions) if path_descriptions else "- 暂未识别到典型关键目录或配置文件。"}
 
 ## 6. 核心模块分析
 
-- README 通常用于说明项目目标、安装方式和快速开始。
-- 语言统计可以帮助判断主要实现语言。
-- 关键源码目录、配置文件、测试目录和 CI 文件可以帮助定位核心工程结构。
-- 具体模块职责仍需要结合源码逐文件阅读确认。
+{chr(10).join(f"- {item}" for item in path_descriptions[:8]) if path_descriptions else "- 当前只能从 README、语言统计和目录树进行粗粒度分析，具体模块职责仍需要结合源码逐文件确认。"}
 
 ## 7. 主要运行流程
 
-{_readme_preview(snapshot.readme)}
+{_render_run_flow(snapshot.readme)}
 
 ## 8. 工程质量观察
 
