@@ -266,11 +266,13 @@ def summarize_repo_command(args: argparse.Namespace) -> int:
             "repos.summarize",
             github_url=args.github_url,
             output_dir=args.output_dir,
+            refresh=args.refresh,
         )
     except (RuntimeError, ValueError, KeyError) as exc:
         print(str(exc))
         return 1
-    print(f"Generated repo report: {_rel(Path(result.artifacts['report_path']))}")
+    label = "Using cached repo report" if getattr(result.output, "cached", False) else "Generated repo report"
+    print(f"{label}: {_rel(Path(result.artifacts['report_path']))}")
     return 0
 
 
@@ -463,6 +465,11 @@ def build_parser() -> argparse.ArgumentParser:
         help="Generate a developer-focused report from a public GitHub repository URL",
     )
     repos_summarize.add_argument("github_url", help="GitHub repository URL")
+    repos_summarize.add_argument(
+        "--refresh",
+        action="store_true",
+        help="Refresh an existing local report instead of reusing the cache",
+    )
     repos_summarize.set_defaults(func=summarize_repo_command)
 
     repos_list = repos_sub.add_parser("list", help="List generated GitHub repository reports")

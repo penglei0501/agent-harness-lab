@@ -21,6 +21,7 @@ interface RepoInsightLabels {
   form_generating: string;
   form_success: string;
   form_error: string;
+  form_refresh: string;
   saved_to: string;
   report_title: string;
 }
@@ -57,6 +58,7 @@ export function RepoInsightGenerator({ labels }: RepoInsightGeneratorProps) {
   const [githubUrl, setGithubUrl] = useState("https://github.com/penglei0501/agent-harness-lab");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [refresh, setRefresh] = useState(false);
   const [report, setReport] = useState<RepoInsightReport | null>(null);
 
   const reportHtml = useMemo(
@@ -74,7 +76,7 @@ export function RepoInsightGenerator({ labels }: RepoInsightGeneratorProps) {
       const response = await fetch("/api/repos/summarize/", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ github_url: githubUrl }),
+        body: JSON.stringify({ github_url: githubUrl, refresh }),
       });
       const payload = (await response.json()) as RepoInsightResponse;
       if (!response.ok || !payload.ok || !payload.report) {
@@ -109,6 +111,16 @@ export function RepoInsightGenerator({ labels }: RepoInsightGeneratorProps) {
               onChange={(event) => setGithubUrl(event.target.value)}
               required
             />
+          </label>
+
+          <label className="flex items-center gap-2 text-sm text-zinc-600 dark:text-zinc-300">
+            <input
+              type="checkbox"
+              checked={refresh}
+              onChange={(event) => setRefresh(event.target.checked)}
+              className="h-4 w-4 rounded border-zinc-300"
+            />
+            {labels.form_refresh}
           </label>
 
           <div className="flex flex-wrap items-center gap-3">

@@ -52,8 +52,15 @@ function assertGitHubUrl(value: string) {
 function resolveReportPath(stdout: string) {
   const line = stdout
     .split(/\r?\n/)
-    .find((entry) => entry.startsWith("Generated repo report:"));
-  const relativePath = line?.replace("Generated repo report:", "").trim();
+    .find(
+      (entry) =>
+        entry.startsWith("Generated repo report:") ||
+        entry.startsWith("Using cached repo report:")
+    );
+  const relativePath = line
+    ?.replace("Generated repo report:", "")
+    .replace("Using cached repo report:", "")
+    .trim();
   if (!relativePath) {
     throw new Error("Repository report path was not returned by agent_lab.");
   }
@@ -94,6 +101,7 @@ export async function POST(request: Request) {
   }
 
   const githubUrl = cleanText(body.github_url ?? body.url);
+  const refresh = body.refresh === true;
   try {
     assertGitHubUrl(githubUrl);
   } catch (error) {
@@ -107,7 +115,14 @@ export async function POST(request: Request) {
   try {
     const result = await execFileAsync(
       python,
-      ["-m", "agent_lab", "repos", "summarize", githubUrl],
+      [
+        "-m",
+        "agent_lab",
+        "repos",
+        "summarize",
+        githubUrl,
+        ...(refresh ? ["--refresh"] : []),
+      ],
       {
         cwd: REPO_ROOT,
         env: { ...process.env, PYTHONPATH: REPO_ROOT },

@@ -135,6 +135,7 @@
     "form_generating": "正在分析...",
     "form_success": "生成成功",
     "form_error": "生成失败",
+    "form_refresh": "重新分析，不使用本地缓存",
     "saved_to": "已保存到",
     "report_title": "生成的仓库分析报告",
     "create": "命令行生成报告",

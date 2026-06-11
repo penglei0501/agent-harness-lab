@@ -135,6 +135,7 @@
     "form_generating": "Analyzing...",
     "form_success": "Generated",
     "form_error": "Generation failed",
+    "form_refresh": "Refresh analysis instead of using the local cache",
     "saved_to": "saved to",
     "report_title": "Generated Repository Analysis",
     "create": "Generate Report from CLI",

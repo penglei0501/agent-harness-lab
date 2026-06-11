@@ -242,7 +242,17 @@ CLI usage:
 
 ```bash
 python -m agent_lab repos summarize https://github.com/browser-use/browser-use
+python -m agent_lab repos summarize https://github.com/browser-use/browser-use --refresh
 python -m agent_lab repos list
+```
+
+By default, `repos summarize` reuses an existing local report in `github_reports/output/`.
+Use `--refresh` to fetch the repository again and overwrite the cached report.
+
+For more stable GitHub REST API usage, set an optional token in `.env`:
+
+```env
+GITHUB_TOKEN=
 ```
 
 Web usage:

@@ -31,6 +31,7 @@ export default async function ReposPage({
     form_generating: t("form_generating"),
     form_success: t("form_success"),
     form_error: t("form_error"),
+    form_refresh: t("form_refresh"),
     saved_to: t("saved_to"),
     report_title: t("report_title"),
   };

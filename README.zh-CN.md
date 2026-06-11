@@ -243,7 +243,17 @@ CLI 使用方式：
 
 ```bash
 python -m agent_lab repos summarize https://github.com/browser-use/browser-use
+python -m agent_lab repos summarize https://github.com/browser-use/browser-use --refresh
 python -m agent_lab repos list
+```
+
+默认情况下，`repos summarize` 会优先复用 `github_reports/output/` 中已有的本地报告。
+如果需要重新请求 GitHub 并覆盖缓存报告，可以添加 `--refresh`。
+
+为了让 GitHub REST API 请求更稳定，可以在 `.env` 中配置可选 token：
+
+```env
+GITHUB_TOKEN=
 ```
 
 Web 使用方式：

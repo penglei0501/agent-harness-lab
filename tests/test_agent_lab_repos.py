@@ -207,6 +207,61 @@ def test_summarize_github_repo_writes_report_and_events(tmp_path: Path) -> None:
     assert events[-1].payload["repo"] == "example/agent-demo"
 
 
+def test_summarize_github_repo_reuses_cached_report_without_fetch(tmp_path: Path) -> None:
+    events_path = tmp_path / "events.jsonl"
+    output_dir = tmp_path / "repo-reports"
+    output_dir.mkdir()
+    cached_path = output_dir / "example-agent-demo.md"
+    cached_path.write_text("# example/agent-demo 仓库技术分析\n\nCached report\n", encoding="utf-8")
+
+    def fail_fetcher(_: str) -> RepoSnapshot:
+        raise AssertionError("fetcher should not be called when cache exists")
+
+    report = summarize_github_repo(
+        "https://github.com/example/agent-demo",
+        output_dir=output_dir,
+        events_path=events_path,
+        fetcher=fail_fetcher,
+    )
+
+    assert report.cached is True
+    assert report.path == cached_path
+    assert report.markdown == "# example/agent-demo 仓库技术分析\n\nCached report\n"
+
+    events = load_events(events_path)
+    assert [event.event_type for event in events] == [
+        "repo_summary_requested",
+        "repo_summary_cache_hit",
+    ]
+
+
+def test_summarize_github_repo_refreshes_cached_report(tmp_path: Path) -> None:
+    events_path = tmp_path / "events.jsonl"
+    output_dir = tmp_path / "repo-reports"
+    output_dir.mkdir()
+    cached_path = output_dir / "example-agent-demo.md"
+    cached_path.write_text("old report", encoding="utf-8")
+
+    report = summarize_github_repo(
+        "https://github.com/example/agent-demo",
+        output_dir=output_dir,
+        events_path=events_path,
+        fetcher=lambda _: sample_snapshot(),
+        refresh=True,
+    )
+
+    assert report.cached is False
+    assert report.path == cached_path
+    assert "old report" not in report.markdown
+    assert "仓库技术分析" in cached_path.read_text(encoding="utf-8")
+
+    events = load_events(events_path)
+    assert [event.event_type for event in events] == [
+        "repo_summary_requested",
+        "repo_summary_generated",
+    ]
+
+
 def test_harness_runtime_runs_repo_summary(tmp_path: Path) -> None:
     output_dir = tmp_path / "repo-reports"
     events_path = tmp_path / "events.jsonl"
@@ -236,7 +291,14 @@ def test_harness_runtime_runs_repo_summary(tmp_path: Path) -> None:
 def test_cli_repos_summarize_and_list(tmp_path: Path, monkeypatch, capsys) -> None:
     import agent_lab.repos as repos
 
-    monkeypatch.setattr(repos, "fetch_repo_snapshot", lambda _: sample_snapshot())
+    fetch_calls = 0
+
+    def fake_fetcher(_: str) -> RepoSnapshot:
+        nonlocal fetch_calls
+        fetch_calls += 1
+        return sample_snapshot()
+
+    monkeypatch.setattr(repos, "fetch_repo_snapshot", fake_fetcher)
     events_path = tmp_path / "events.jsonl"
     output_dir = tmp_path / "repo-reports"
     base_args = [
@@ -251,6 +313,17 @@ def test_cli_repos_summarize_and_list(tmp_path: Path, monkeypatch, capsys) -> No
     generated = capsys.readouterr()
     assert "Generated repo report" in generated.out
     assert "example-agent-demo.md" in generated.out
+    assert fetch_calls == 1
+
+    assert main([*base_args, "summarize", "https://github.com/example/agent-demo"]) == 0
+    cached = capsys.readouterr()
+    assert "Using cached repo report" in cached.out
+    assert fetch_calls == 1
+
+    assert main([*base_args, "summarize", "https://github.com/example/agent-demo", "--refresh"]) == 0
+    refreshed = capsys.readouterr()
+    assert "Generated repo report" in refreshed.out
+    assert fetch_calls == 2
 
     assert main([*base_args, "list"]) == 0
     listed = capsys.readouterr()

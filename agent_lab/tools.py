@@ -88,6 +88,7 @@ def _summarize_repo_tool(**kwargs: Any) -> Any:
     args: dict[str, Any] = {
         "output_dir": Path(kwargs["output_dir"]),
         "events_path": Path(kwargs["events_path"]),
+        "refresh": bool(kwargs.get("refresh", False)),
     }
     if fetcher is not None:
         args["fetcher"] = fetcher

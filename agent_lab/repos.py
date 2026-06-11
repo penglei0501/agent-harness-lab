@@ -50,6 +50,7 @@ class RepoReport:
     repo: str
     markdown: str
     path: Path
+    cached: bool = False
 
 
 def parse_github_url(url: str) -> RepoId:
@@ -739,10 +740,14 @@ def generate_markdown_report(snapshot: RepoSnapshot) -> str:
 """
 
 
-def _report_filename(snapshot: RepoSnapshot) -> str:
-    safe_owner = re.sub(r"[^A-Za-z0-9_.-]+", "-", snapshot.owner).strip("-")
-    safe_repo = re.sub(r"[^A-Za-z0-9_.-]+", "-", snapshot.repo).strip("-")
+def _report_filename_for(owner: str, repo: str) -> str:
+    safe_owner = re.sub(r"[^A-Za-z0-9_.-]+", "-", owner).strip("-")
+    safe_repo = re.sub(r"[^A-Za-z0-9_.-]+", "-", repo).strip("-")
     return f"{safe_owner}-{safe_repo}.md"
+
+
+def _report_filename(snapshot: RepoSnapshot) -> str:
+    return _report_filename_for(snapshot.owner, snapshot.repo)
 
 
 def summarize_github_repo(
@@ -751,12 +756,26 @@ def summarize_github_repo(
     output_dir: Path = GITHUB_REPORTS_OUTPUT_DIR,
     events_path: Path = EVENTS_PATH,
     fetcher: Callable[[str], RepoSnapshot] | None = None,
+    refresh: bool = False,
 ) -> RepoReport:
     """Fetch a GitHub repository and save a structured Markdown insight report."""
     append_event("repo_summary_requested", {"url": github_url}, events_path=events_path)
+    repo_id = parse_github_url(github_url)
+    output_dir.mkdir(parents=True, exist_ok=True)
+    cached_path = output_dir / _report_filename_for(repo_id.owner, repo_id.repo)
+    repo_name = f"{repo_id.owner}/{repo_id.repo}"
+
+    if cached_path.exists() and not refresh:
+        markdown = cached_path.read_text(encoding="utf-8")
+        append_event(
+            "repo_summary_cache_hit",
+            {"repo": repo_name, "report_path": str(cached_path), "title": repo_name},
+            events_path=events_path,
+        )
+        return RepoReport(repo=repo_name, markdown=markdown, path=cached_path, cached=True)
+
     snapshot = (fetcher or fetch_repo_snapshot)(github_url)
     markdown = generate_markdown_report(snapshot)
-    output_dir.mkdir(parents=True, exist_ok=True)
     path = output_dir / _report_filename(snapshot)
     path.write_text(markdown, encoding="utf-8")
     repo_name = f"{snapshot.owner}/{snapshot.repo}"
