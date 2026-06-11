@@ -305,6 +305,92 @@ def infer_project_context(snapshot: RepoSnapshot) -> list[str]:
     return contexts
 
 
+def infer_project_types(snapshot: RepoSnapshot) -> list[str]:
+    """Infer high-level repository type labels from stable repository signals."""
+    topics = {topic.lower() for topic in snapshot.topics}
+    description = snapshot.description.lower()
+    readme = snapshot.readme.lower()
+    path_text = " ".join(snapshot.tree_paths).lower()
+    haystack = " ".join([description, " ".join(topics), readme, path_text])
+    project_types: list[str] = []
+
+    has_browser_automation = (
+        "browser-automation" in topics
+        or "browser automation" in haystack
+        or "browser_use/" in path_text
+    )
+    if has_browser_automation and ("agent" in haystack or "llm" in haystack):
+        project_types.append("AI Agent 浏览器自动化工具")
+    elif "agent" in haystack and ("runtime" in path_text or "harness" in haystack):
+        project_types.append("Agent Runtime / Harness 项目")
+    elif "agent" in haystack:
+        project_types.append("AI Agent 工具或示例项目")
+
+    if "next.config" in path_text or "next.js" in haystack or "nextjs" in haystack:
+        project_types.append("Next.js Web 应用")
+    if "api/" in path_text and ("react" in haystack or "app/" in path_text):
+        project_types.append("前后端一体化 Web 工程")
+    if "pyproject.toml" in path_text or "requirements.txt" in path_text:
+        project_types.append("Python 工程")
+    if "dockerfile" in path_text or "docker-compose" in path_text:
+        project_types.append("可容器化运行项目")
+
+    if not project_types:
+        project_types.append("通用软件工程项目")
+    return project_types
+
+
+def build_new_developer_reading_path(paths: list[str], limit: int = 8) -> list[str]:
+    """Build a practical first-reading path for developers entering the repository."""
+    lower_paths = [(path, path.lower()) for path in paths]
+    steps: list[tuple[str, str]] = []
+    used_keys: set[str] = set()
+
+    def add(key: str, label: str, reason: str) -> None:
+        if key in used_keys:
+            return
+        used_keys.add(key)
+        steps.append((label, reason))
+
+    def has_path(predicate: Callable[[str], bool]) -> bool:
+        return any(predicate(lower) for _, lower in lower_paths)
+
+    if has_path(lambda lower: lower == "readme.md" or lower.startswith("readme.")):
+        add("readme", "README.md", "先确认项目目标、安装方式和最小示例。")
+    if has_path(lambda lower: lower in {"package.json", "pyproject.toml", "requirements.txt"}):
+        config = next(
+            path
+            for path, lower in lower_paths
+            if lower in {"package.json", "pyproject.toml", "requirements.txt"}
+        )
+        add("config", config, "确认依赖、脚本命令和运行环境。")
+    if has_path(lambda lower: lower.endswith("runtime.py")):
+        runtime = next(path for path, lower in lower_paths if lower.endswith("runtime.py"))
+        add("runtime", runtime, "理解核心运行时如何串联计划、工具和事件。")
+    if has_path(lambda lower: "/agent/" in lower or lower.endswith("/agent")):
+        agent_root = next(path.split("/agent/", 1)[0] for path, lower in lower_paths if "/agent/" in lower)
+        add("agent", f"{agent_root}/agent/", "理解 Agent 的任务执行、prompt、消息管理或运行状态。")
+    if has_path(lambda lower: "/browser/" in lower or lower.endswith("/browser")):
+        browser_root = next(path.split("/browser/", 1)[0] for path, lower in lower_paths if "/browser/" in lower)
+        add("browser", f"{browser_root}/browser/", "理解浏览器会话、页面状态或环境封装。")
+    if has_path(lambda lower: "/actor/" in lower or lower.endswith("/actor")):
+        actor_root = next(path.split("/actor/", 1)[0] for path, lower in lower_paths if "/actor/" in lower)
+        add("actor", f"{actor_root}/actor/", "理解动作执行和浏览器操作封装。")
+    if has_path(lambda lower: lower.endswith("tools.py")):
+        tools = next(path for path, lower in lower_paths if lower.endswith("tools.py"))
+        add("tools", tools, "查看工具注册、输入输出和 action 分发方式。")
+    if has_path(lambda lower: lower.startswith("app/") or lower.startswith("src/app/")):
+        add("app", "app/", "查看页面、路由或 API 入口如何组织。")
+    if has_path(lambda lower: lower.startswith("examples/")):
+        add("examples", "examples/", "用示例验证真实调用方式。")
+    if has_path(lambda lower: lower.startswith("tests/") or "/tests/" in lower or "test_" in lower):
+        add("tests", "tests/", "查看关键行为如何被自动化验证。")
+    if has_path(lambda lower: lower.startswith(".github/workflows/")):
+        add("ci", ".github/workflows/", "了解 CI 会自动检查哪些质量门禁。")
+
+    return [f"{index}. `{label}`：{reason}" for index, (label, reason) in enumerate(steps[:limit], 1)]
+
+
 def describe_important_paths(paths: list[str], limit: int = 14) -> list[str]:
     """Explain important directories/files instead of only listing raw paths."""
     descriptions: list[str] = []
@@ -582,10 +668,24 @@ def generate_markdown_report(snapshot: RepoSnapshot) -> str:
     important_paths = pick_important_paths(snapshot.tree_paths)
     path_descriptions = describe_important_paths(important_paths)
     file_summaries = summarize_key_files(snapshot.file_contents)
+    project_types = infer_project_types(snapshot)
     project_context = infer_project_context(snapshot)
+    reading_path = build_new_developer_reading_path(snapshot.tree_paths)
     suggestions = infer_improvement_suggestions(snapshot, path_descriptions)
     topics = ", ".join(snapshot.topics) if snapshot.topics else "暂无 topics"
     license_name = snapshot.license_name or "未声明"
+    module_analysis = (
+        chr(10).join(f"- {item}" for item in file_summaries)
+        if file_summaries
+        else chr(10).join(f"- {item}" for item in path_descriptions[:8])
+        if path_descriptions
+        else "- 当前只能从 README、语言统计和目录树进行粗粒度分析，具体模块职责仍需要结合源码逐文件确认。"
+    )
+    reading_path_block = (
+        "建议新开发者阅读路径：\n\n" + chr(10).join(reading_path) + "\n\n"
+        if reading_path
+        else ""
+    )
 
     return f"""# {snapshot.owner}/{snapshot.repo} 仓库技术分析
 
@@ -595,6 +695,7 @@ def generate_markdown_report(snapshot: RepoSnapshot) -> str:
 
 ## 2. 项目目标与使用场景
 
+- 项目类型：{", ".join(project_types)}
 {chr(10).join(f"- {item}" for item in project_context)}
 
 ## 3. 仓库基本信息
@@ -618,7 +719,7 @@ def generate_markdown_report(snapshot: RepoSnapshot) -> str:
 
 ## 6. 核心模块分析
 
-{chr(10).join(f"- {item}" for item in file_summaries) if file_summaries else chr(10).join(f"- {item}" for item in path_descriptions[:8]) if path_descriptions else "- 当前只能从 README、语言统计和目录树进行粗粒度分析，具体模块职责仍需要结合源码逐文件确认。"}
+{reading_path_block}{module_analysis}
 
 ## 7. 主要运行流程
 

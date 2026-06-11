@@ -136,6 +136,7 @@ def test_generate_markdown_report_uses_key_file_content_for_module_analysis() ->
 def test_generate_markdown_report_extracts_commands_and_explains_paths() -> None:
     report = generate_markdown_report(browser_style_snapshot())
 
+    assert "项目类型：AI Agent 浏览器自动化工具" in report
     assert "AI Agent" in report
     assert "浏览器自动化" in report
     assert "`browser_use/agent/`：Agent 核心模块" in report
@@ -148,6 +149,18 @@ def test_generate_markdown_report_extracts_commands_and_explains_paths() -> None
     assert "<picture>" not in report
     assert "srcset" not in report
     assert "README 通常用于说明" not in report
+
+
+def test_generate_markdown_report_adds_new_developer_reading_path() -> None:
+    report = generate_markdown_report(browser_style_snapshot())
+
+    assert "建议新开发者阅读路径：" in report
+    assert "1. `README.md`：先确认项目目标、安装方式和最小示例。" in report
+    assert "2. `browser_use/agent/`：理解 Agent 的任务执行、prompt、消息管理或运行状态。" in report
+    assert "3. `browser_use/browser/`：理解浏览器会话、页面状态或环境封装。" in report
+    assert "4. `browser_use/actor/`：理解动作执行和浏览器操作封装。" in report
+    assert "5. `examples/`：用示例验证真实调用方式。" in report
+    assert "6. `tests/`：查看关键行为如何被自动化验证。" in report
 
 
 def test_generate_markdown_report_has_contextual_improvement_suggestions() -> None:
