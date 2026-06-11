@@ -1,9 +1,10 @@
-import { FileHeart, FileText, ListChecks, Terminal } from "lucide-react";
+import { FileHeart, ListChecks, Terminal } from "lucide-react";
 import { Card, CardHeader, CardTitle } from "@/components/ui/card";
 import { EventTimeline } from "@/components/dashboard/event-timeline";
+import { HealthReportViewer } from "@/components/health/health-report-viewer";
 import { HealthUpload } from "@/components/health/health-upload";
 import { getTranslations } from "@/lib/i18n-server";
-import type { DashboardData, DashboardHealthReport } from "@/types/agent-data";
+import type { DashboardData } from "@/types/agent-data";
 import dashboardJson from "@/data/generated/dashboard.json";
 
 const data = dashboardJson as DashboardData;
@@ -16,23 +17,6 @@ function CommandBlock({ command }: { command: string }) {
   );
 }
 
-function ReportRow({ report, indicatorLabel }: { report: DashboardHealthReport; indicatorLabel: string }) {
-  return (
-    <div className="border-b border-zinc-100 py-3 last:border-b-0 dark:border-zinc-800">
-      <div className="flex flex-wrap items-center gap-2">
-        <FileText size={16} className="text-emerald-500" />
-        <p className="text-sm font-medium">{report.title}</p>
-      </div>
-      <div className="mt-2 grid gap-1 text-xs text-zinc-500 dark:text-zinc-400">
-        <span>{report.path}</span>
-        <span>
-          {report.indicatorCount} {indicatorLabel}
-        </span>
-      </div>
-    </div>
-  );
-}
-
 export default async function HealthPage({
   params,
 }: {
@@ -42,6 +26,20 @@ export default async function HealthPage({
   const t = getTranslations(locale, "health");
   const reports = data.health?.reports ?? [];
   const healthEvents = data.events.recent.filter((event) => event.type.startsWith("health_"));
+  const reportLabels = {
+    safety_title: t("safety_title"),
+    indicators_title: t("indicators_title"),
+    interpretation_title: t("interpretation_title"),
+    doctor_checklist_title: t("doctor_checklist_title"),
+    lifestyle_title: t("lifestyle_title"),
+    source_excerpt_title: t("source_excerpt_title"),
+    copy_markdown: t("copy_markdown"),
+    copied: t("copied"),
+    download_markdown: t("download_markdown"),
+    show_markdown: t("show_markdown"),
+    hide_markdown: t("hide_markdown"),
+    empty_section: t("empty_section"),
+  };
 
   return (
     <div>
@@ -70,6 +68,7 @@ export default async function HealthPage({
             success: t("upload_success"),
             error: t("upload_error"),
             markdown: t("generated_markdown"),
+            ...reportLabels,
           }}
         />
       </div>
@@ -104,9 +103,14 @@ export default async function HealthPage({
             <CardTitle>{t("reports")}</CardTitle>
           </CardHeader>
           {reports.length ? (
-            <div>
+            <div className="space-y-4">
               {reports.map((report) => (
-                <ReportRow key={report.path} report={report} indicatorLabel={t("indicators")} />
+                <HealthReportViewer
+                  key={report.path}
+                  report={report}
+                  labels={reportLabels}
+                  defaultOpen={false}
+                />
               ))}
             </div>
           ) : (

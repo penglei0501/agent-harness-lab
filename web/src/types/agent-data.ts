@@ -79,6 +79,7 @@ export interface DashboardHealthReport {
   path: string;
   source: string;
   indicatorCount: number;
+  markdown: string;
   updatedAt: string;
 }
 

@@ -394,6 +394,7 @@ function buildDashboardData(docs: DocContent[]): DashboardData {
         path: repoRelative(filePath),
         source: sourceMatch?.[1] ?? "-",
         indicatorCount,
+        markdown: content,
         updatedAt: stat.mtime.toISOString(),
       });
     }

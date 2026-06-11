@@ -2,6 +2,7 @@
 
 import { useRef, useState } from "react";
 import { FileHeart, FileUp, Loader2 } from "lucide-react";
+import { HealthReportViewer, type HealthReportViewerLabels } from "@/components/health/health-report-viewer";
 import { cn } from "@/lib/utils";
 
 type UploadState = "idle" | "dragging" | "uploading" | "success" | "error";
@@ -21,7 +22,7 @@ interface HealthUploadProps {
     success: string;
     error: string;
     markdown: string;
-  };
+  } & HealthReportViewerLabels;
 }
 
 const ACCEPTED_TYPES = ".pdf,.md,.txt";
@@ -122,10 +123,18 @@ export function HealthUpload({ labels }: HealthUploadProps) {
           <div className="mb-3 rounded-md bg-emerald-50 px-3 py-2 text-sm text-emerald-800 dark:bg-emerald-950/30 dark:text-emerald-300">
             {labels.success}: {result.reportPath}
           </div>
-          <h3 className="mb-2 text-sm font-semibold">{labels.markdown}</h3>
-          <pre className="max-h-[520px] overflow-auto rounded-md bg-zinc-950 p-4 text-xs leading-6 text-zinc-100">
-            <code>{result.markdown}</code>
-          </pre>
+          <HealthReportViewer
+            report={{
+              title: result.filename,
+              path: result.reportPath,
+              source: result.filename,
+              indicatorCount: 0,
+              markdown: result.markdown,
+              updatedAt: new Date().toISOString(),
+            }}
+            labels={labels}
+            defaultOpen={false}
+          />
         </div>
       )}
     </section>

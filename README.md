@@ -224,6 +224,7 @@ http://localhost:3000/en/health
 ```
 
 Generated reports include extracted indicators, general interpretation notes, a doctor communication checklist, non-diagnostic lifestyle information, and a clear safety notice.
+The Web page renders these sections as cards and supports copying or downloading the Markdown report.
 
 ## Smart Recipe Assistant
 
