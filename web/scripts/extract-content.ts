@@ -11,6 +11,8 @@ import type {
   DashboardTask,
   DashboardTaskDependency,
   DashboardPaperNote,
+  RepoInsightIndex,
+  RepoInsightReport,
   RecipeIndex,
   RecipeReport,
 } from "../src/types/agent-data";
@@ -26,6 +28,7 @@ const SKILLS_DIR = path.join(REPO_ROOT, "skills");
 const EVENTS_PATH = path.join(REPO_ROOT, ".agent_lab", "events.jsonl");
 const PAPERS_OUTPUT_DIR = path.join(REPO_ROOT, "papers", "output");
 const RECIPES_OUTPUT_DIR = path.join(REPO_ROOT, "recipes", "output");
+const GITHUB_REPORTS_OUTPUT_DIR = path.join(REPO_ROOT, "github_reports", "output");
 const OUT_DIR = path.join(WEB_DIR, "src", "data", "generated");
 
 // Map python filenames to version IDs
@@ -161,6 +164,63 @@ function asRecipeSubstitutions(value: unknown): RecipeReport["substitutions"] {
       };
     })
     .filter((item) => item.original || item.alternative);
+}
+
+function extractRepoNameFromReport(content: string, fallback: string): string {
+  const match = content.match(/^#\s+(.+?)\s+仓库技术分析\s*$/m);
+  return match?.[1]?.trim() || fallback;
+}
+
+function extractSection(content: string, heading: string): string {
+  const escaped = heading.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  const headingPattern = new RegExp(`^##\\s+\\d+\\.\\s+${escaped}\\s*$`);
+  const nextHeadingPattern = /^##\s+\d+\.\s+/;
+  const lines = content.split(/\r?\n/);
+  const startIndex = lines.findIndex((line) => headingPattern.test(line.trim()));
+  if (startIndex === -1) return "";
+
+  const body: string[] = [];
+  for (let i = startIndex + 1; i < lines.length; i++) {
+    if (nextHeadingPattern.test(lines[i].trim())) break;
+    body.push(lines[i]);
+  }
+  return body.join("\n").trim();
+}
+
+function buildRepoInsightIndex(): RepoInsightIndex {
+  const reportItems: RepoInsightReport[] = [];
+  if (!fs.existsSync(GITHUB_REPORTS_OUTPUT_DIR)) {
+    return { total: 0, items: [] };
+  }
+
+  const reportFiles = fs
+    .readdirSync(GITHUB_REPORTS_OUTPUT_DIR)
+    .filter((file) => file.endsWith(".md"))
+    .sort((a, b) => a.localeCompare(b, undefined, { numeric: true }));
+
+  for (const file of reportFiles) {
+    const filePath = path.join(GITHUB_REPORTS_OUTPUT_DIR, file);
+    const content = fs.readFileSync(filePath, "utf-8");
+    const repo = extractRepoNameFromReport(content, path.basename(file, ".md").replace("-", "/"));
+    const summary = extractSection(content, "一句话总结")
+      .replace(/\s+/g, " ")
+      .trim();
+    const stat = fs.statSync(filePath);
+
+    reportItems.push({
+      title: repo,
+      repo,
+      path: repoRelative(filePath),
+      summary,
+      markdown: content,
+      updatedAt: stat.mtime.toISOString(),
+    });
+  }
+
+  return {
+    total: reportItems.length,
+    items: reportItems.reverse(),
+  };
 }
 
 function extractSkillMeta(content: string): { name?: string; description?: string } {
@@ -311,6 +371,8 @@ function buildDashboardData(docs: DocContent[]): DashboardData {
     }
   }
 
+  const repoReports = buildRepoInsightIndex();
+
   return {
     tasks: {
       total: taskItems.length,
@@ -335,6 +397,10 @@ function buildDashboardData(docs: DocContent[]): DashboardData {
     papers: {
       total: paperItems.length,
       notes: paperItems.slice(-12).reverse(),
+    },
+    repos: {
+      total: repoReports.total,
+      reports: repoReports.items.slice(0, 8),
     },
   };
 }
@@ -551,6 +617,11 @@ function main() {
   fs.writeFileSync(recipesPath, JSON.stringify(recipes, null, 2));
   console.log(`  Wrote ${recipesPath}`);
 
+  const repos = buildRepoInsightIndex();
+  const reposPath = path.join(OUT_DIR, "repos.json");
+  fs.writeFileSync(reposPath, JSON.stringify(repos, null, 2));
+  console.log(`  Wrote ${reposPath}`);
+
   // Summary
   console.log("\nExtraction complete:");
   console.log(`  ${versions.length} versions`);
@@ -561,6 +632,7 @@ function main() {
   console.log(`  ${dashboard.events.total} events`);
   console.log(`  ${dashboard.papers?.total ?? 0} paper notes`);
   console.log(`  ${recipes.total} recipe reports`);
+  console.log(`  ${repos.total} repository reports`);
   for (const v of versions) {
     console.log(
       `    ${v.id}: ${v.loc} LOC, ${v.tools.length} tools, ${v.classes.length} classes, ${v.functions.length} functions`

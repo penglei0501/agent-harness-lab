@@ -119,6 +119,7 @@ Open the Web assistants:
 http://localhost:3000/zh/demo
 http://localhost:3000/zh/papers
 http://localhost:3000/zh/recipes
+http://localhost:3000/zh/repos
 ```
 
 Demo screenshots can be saved as:
@@ -242,6 +243,13 @@ CLI usage:
 ```bash
 python -m agent_lab repos summarize https://github.com/browser-use/browser-use
 python -m agent_lab repos list
+```
+
+Web usage:
+
+```text
+http://localhost:3000/zh/repos
+http://localhost:3000/en/repos
 ```
 
 Generated reports are saved in:

@@ -110,6 +110,20 @@ export interface RecipeIndex {
   items: RecipeReport[];
 }
 
+export interface RepoInsightReport {
+  title: string;
+  repo: string;
+  path: string;
+  summary: string;
+  markdown: string;
+  updatedAt: string;
+}
+
+export interface RepoInsightIndex {
+  total: number;
+  items: RepoInsightReport[];
+}
+
 export interface DashboardData {
   tasks: {
     total: number;
@@ -134,6 +148,10 @@ export interface DashboardData {
   papers?: {
     total: number;
     notes: DashboardPaperNote[];
+  };
+  repos?: {
+    total: number;
+    reports: RepoInsightReport[];
   };
 }
 

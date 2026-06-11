@@ -12,6 +12,7 @@ const NAV_ITEMS = [
   { key: "dashboard", href: "/dashboard" },
   { key: "papers", href: "/papers" },
   { key: "recipes", href: "/recipes" },
+  { key: "repos", href: "/repos" },
   { key: "timeline", href: "/timeline" },
   { key: "compare", href: "/compare" },
   { key: "layers", href: "/layers" },

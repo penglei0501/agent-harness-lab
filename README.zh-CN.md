@@ -116,6 +116,7 @@ npm run dev
 http://localhost:3000/zh/demo
 http://localhost:3000/zh/papers
 http://localhost:3000/zh/recipes
+http://localhost:3000/zh/repos
 ```
 
 Demo 截图可以保存为：
@@ -243,6 +244,13 @@ CLI 使用方式：
 ```bash
 python -m agent_lab repos summarize https://github.com/browser-use/browser-use
 python -m agent_lab repos list
+```
+
+Web 使用方式：
+
+```text
+http://localhost:3000/zh/repos
+http://localhost:3000/en/repos
 ```
 
 生成的报告保存在：

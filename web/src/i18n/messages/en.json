@@ -1,6 +1,6 @@
 {
   "meta": { "title": "Agent Harness Lab", "description": "Learn and visualize coding agent harness architecture" },
-  "nav": { "home": "Home", "demo": "Demo", "dashboard": "Dashboard", "papers": "Papers", "recipes": "Recipes", "timeline": "Timeline", "compare": "Compare", "layers": "Layers", "github": "GitHub" },
+  "nav": { "home": "Home", "demo": "Demo", "dashboard": "Dashboard", "papers": "Papers", "recipes": "Recipes", "repos": "Repos", "timeline": "Timeline", "compare": "Compare", "layers": "Layers", "github": "GitHub" },
   "home": { "hero_title": "Agent Harness Lab", "hero_subtitle": "Learn and visualize coding agent harness architecture, from tool loops to multi-agent coordination.", "start": "Start Learning", "core_pattern": "The Core Pattern", "core_pattern_desc": "Every AI coding agent shares the same loop: call the model, execute tools, feed results back. Production systems add policy, permissions, and lifecycle layers on top.", "learning_path": "Learning Path", "learning_path_desc": "12 progressive sessions, from a simple loop to isolated autonomous execution", "layers_title": "Architectural Layers", "layers_desc": "Five orthogonal concerns that compose into a complete agent", "loc": "LOC", "learn_more": "Learn More", "versions_in_layer": "versions", "message_flow": "Message Growth", "message_flow_desc": "Watch the messages array grow as the agent loop executes" },
   "version": { "loc": "lines of code", "tools": "tools", "new": "New", "prev": "Previous", "next": "Next", "view_source": "View Source", "view_diff": "View Diff", "design_decisions": "Design Decisions", "whats_new": "What's New", "tutorial": "Tutorial", "simulator": "Agent Loop Simulator", "execution_flow": "Execution Flow", "architecture": "Architecture", "concept_viz": "Concept Visualization", "alternatives": "Alternatives Considered", "tab_learn": "Learn", "tab_simulate": "Simulate", "tab_code": "Code", "tab_deep_dive": "Deep Dive" },
   "sim": { "play": "Play", "pause": "Pause", "step": "Step", "reset": "Reset", "speed": "Speed", "step_of": "of" },
@@ -123,6 +123,27 @@
     "notes": "Notes",
     "reason": "Reason",
     "path": "File"
+  },
+  "repos": {
+    "title": "GitHub Repository Insight Assistant",
+    "subtitle": "Enter a public GitHub repository URL and generate a structured technical analysis report for developers.",
+    "generator_title": "Generate a Repository Report in the Browser",
+    "generator_desc": "Enter a GitHub repository URL. The page calls the local agent_lab backend, fetches repository metadata, README content, language statistics, and file tree data, then writes a Markdown insight report.",
+    "form_url": "GitHub Repository URL",
+    "form_placeholder": "https://github.com/owner/repo",
+    "form_submit": "Generate Report",
+    "form_generating": "Analyzing...",
+    "form_success": "Generated",
+    "form_error": "Generation failed",
+    "saved_to": "saved to",
+    "report_title": "Generated Repository Analysis",
+    "create": "Generate Report from CLI",
+    "create_desc": "The CLI writes Markdown reports to github_reports/output, and npm run extract syncs them into the Web page.",
+    "list": "Inspect Local Reports",
+    "list_desc": "Generated repository reports are rendered here as a local history for comparing different projects.",
+    "reports": "Generated Repository Reports",
+    "empty_reports": "No repository reports yet. Run repos summarize and then npm run extract, or enter a repository URL above.",
+    "empty_summary": "No one-line summary was extracted for this report."
   },
   "layers": {
     "title": "Architectural Layers",
