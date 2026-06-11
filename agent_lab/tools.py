@@ -7,6 +7,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
+from .health import analyze_health_record
 from .papers import generate_notes_for_folder, generate_paper_note
 from .recipes import suggest_recipe, suggest_recipe_options
 from .repos import summarize_github_repo
@@ -43,6 +44,14 @@ class ToolRegistry:
 def _read_paper_tool(**kwargs: Any) -> Any:
     return generate_paper_note(
         Path(kwargs["paper_path"]),
+        output_dir=Path(kwargs["output_dir"]),
+        events_path=Path(kwargs["events_path"]),
+    )
+
+
+def _analyze_health_record_tool(**kwargs: Any) -> Any:
+    return analyze_health_record(
+        Path(kwargs["record_path"]),
         output_dir=Path(kwargs["output_dir"]),
         events_path=Path(kwargs["events_path"]),
     )
@@ -106,6 +115,11 @@ def default_tool_registry() -> ToolRegistry:
         "papers.read_folder",
         "Read supported paper files in a folder and write Markdown research notes.",
         _read_paper_folder_tool,
+    )
+    registry.register(
+        "health.analyze",
+        "Analyze one health record and write a safety-bounded Markdown summary.",
+        _analyze_health_record_tool,
     )
     registry.register(
         "recipes.suggest",

@@ -74,6 +74,14 @@ export interface DashboardPaperNote {
   updatedAt: string;
 }
 
+export interface DashboardHealthReport {
+  title: string;
+  path: string;
+  source: string;
+  indicatorCount: number;
+  updatedAt: string;
+}
+
 export interface RecipeStep {
   order: number;
   title: string;
@@ -148,6 +156,10 @@ export interface DashboardData {
   papers?: {
     total: number;
     notes: DashboardPaperNote[];
+  };
+  health?: {
+    total: number;
+    reports: DashboardHealthReport[];
   };
   repos?: {
     total: number;

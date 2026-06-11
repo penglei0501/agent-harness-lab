@@ -7,7 +7,14 @@ from pathlib import Path
 from typing import Any
 
 from .events import load_events
-from .paths import EVENTS_PATH, GITHUB_REPORTS_OUTPUT_DIR, PAPERS_OUTPUT_DIR, RECIPES_OUTPUT_DIR, SKILLS_DIR
+from .paths import (
+    EVENTS_PATH,
+    GITHUB_REPORTS_OUTPUT_DIR,
+    HEALTH_RECORDS_OUTPUT_DIR,
+    PAPERS_OUTPUT_DIR,
+    RECIPES_OUTPUT_DIR,
+    SKILLS_DIR,
+)
 from .planner import plan_for_action
 from .skills import load_skills
 from .tools import ToolRegistry, default_tool_registry
@@ -16,6 +23,7 @@ from .tools import ToolRegistry, default_tool_registry
 ACTION_SKILLS: dict[str, list[str]] = {
     "papers.read": ["paper-reading", "pdf", "research-report-writing"],
     "papers.read_folder": ["paper-reading", "pdf", "research-report-writing"],
+    "health.analyze": ["health-record-reading", "health-safety"],
     "recipes.suggest": ["recipe-planning", "cooking-instructions", "nutrition-awareness"],
     "recipes.suggest_options": ["recipe-planning", "cooking-instructions", "nutrition-awareness"],
     "repos.summarize": ["github-repo-insight"],
@@ -78,6 +86,8 @@ class HarnessRuntime:
         normalized.setdefault("events_path", self.events_path)
         if action.startswith("papers."):
             normalized.setdefault("output_dir", PAPERS_OUTPUT_DIR)
+        elif action.startswith("health."):
+            normalized.setdefault("output_dir", HEALTH_RECORDS_OUTPUT_DIR)
         elif action.startswith("recipes."):
             normalized.setdefault("output_dir", RECIPES_OUTPUT_DIR)
         elif action.startswith("repos."):
@@ -89,6 +99,12 @@ class HarnessRuntime:
             return {"note_path": str(output.note_path), "title": output.title}
         if action == "papers.read_folder":
             return {"note_paths": [str(note.note_path) for note in output], "count": len(output)}
+        if action == "health.analyze":
+            return {
+                "report_path": str(output.report_path),
+                "title": output.title,
+                "indicator_count": len(output.indicators),
+            }
         if action == "recipes.suggest":
             return {"recipe_path": str(output.path), "title": output.title}
         if action == "recipes.suggest_options":

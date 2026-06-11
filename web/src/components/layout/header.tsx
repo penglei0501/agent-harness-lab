@@ -11,6 +11,7 @@ const NAV_ITEMS = [
   { key: "demo", href: "/demo" },
   { key: "dashboard", href: "/dashboard" },
   { key: "papers", href: "/papers" },
+  { key: "health", href: "/health" },
   { key: "recipes", href: "/recipes" },
   { key: "repos", href: "/repos" },
   { key: "timeline", href: "/timeline" },

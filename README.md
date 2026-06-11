@@ -2,7 +2,7 @@
 
 English | [简体中文](README.zh-CN.md)
 
-A Python + Next.js Agent Harness lab for learning, experimenting with, and visualizing coding-agent runtime architecture. The project includes progressive agent examples, a local `agent_lab` CLI, a Web dashboard, a research paper assistant, a smart recipe assistant, and a GitHub repository insight assistant that demonstrates how the same harness can expand into domain workflows.
+A Python + Next.js Agent Harness lab for learning, experimenting with, and visualizing coding-agent runtime architecture. The project includes progressive agent examples, a local `agent_lab` CLI, a Web dashboard, a research paper assistant, a health record assistant, a smart recipe assistant, and a GitHub repository insight assistant that demonstrates how the same harness can expand into domain workflows.
 
 Core idea:
 
@@ -26,10 +26,11 @@ The model reasons and decides. The harness provides the observable, executable, 
 - Tool registration and dispatch layer for shell commands, file operations, editing, task management, and skill loading.
 - Unified `HarnessRuntime` for action planning, skill selection, registered tool execution, artifact collection, and event capture.
 - Persistent Todo and task systems for multi-step planning, dependency tracking, status transitions, and long-running goals.
-- `agent_lab` CLI for local task, event, skill, doc, paper assistant, and recipe assistant workflows.
-- JSONL event log for task lifecycle events, paper report generation, recipe option generation, and repository insight reports.
+- `agent_lab` CLI for local task, event, skill, doc, paper assistant, health assistant, recipe assistant, and repository insight workflows.
+- JSONL event log for task lifecycle events, paper report generation, health summary generation, recipe option generation, and repository insight reports.
 - Next.js Web Dashboard for task status, skill index, docs inventory, event timelines, and task dependencies.
 - Paper reading assistant for PDF / Markdown / text upload and structured research reading reports.
+- Health record assistant for safety-bounded checkup report summaries with non-diagnostic guidance.
 - Research Skill Pack for reusable paper reading, method analysis, experiment analysis, and research report writing workflows.
 - Smart recipe assistant for multiple structured JSON recipe options, recommendation reasons, cooking tool selection, and detailed cooking steps.
 - Life Skill Pack for recipe planning, cooking instructions, and nutrition-aware notes.
@@ -45,6 +46,7 @@ The model reasons and decides. The harness provides the observable, executable, 
 ├── agent_lab/               # Project-specific runtime, tool registry, planner, and CLI
 ├── docs/                    # English and Chinese learning content
 ├── papers/                  # Local paper input and report output directories
+├── health_records/          # Local health record input and safety-bounded report output directories
 ├── recipes/                 # Local structured recipe JSON reports
 ├── github_reports/          # Local GitHub repository insight reports
 ├── skills/                  # On-demand skills, Research Skill Pack, and Life Skill Pack
@@ -67,12 +69,12 @@ CLI / Web API
   -> Planner
   -> Skill selection
   -> Tool registry
-  -> Paper / Recipe / Repository tool
+  -> Paper / Health / Recipe / Repository tool
   -> Artifact writer
   -> JSONL event log
 ```
 
-This keeps the paper assistant, recipe assistant, and repository insight assistant under the same harness contract. Each action has a plan, a related skill set, a registered local tool, generated artifacts, and captured runtime events.
+This keeps the paper assistant, health assistant, recipe assistant, and repository insight assistant under the same harness contract. Each action has a plan, a related skill set, a registered local tool, generated artifacts, and captured runtime events.
 
 ## Learning Path
 
@@ -118,6 +120,7 @@ Open the Web assistants:
 ```text
 http://localhost:3000/zh/demo
 http://localhost:3000/zh/papers
+http://localhost:3000/zh/health
 http://localhost:3000/zh/recipes
 http://localhost:3000/zh/repos
 ```
@@ -136,13 +139,14 @@ Useful local commands:
 cd /path/to/agent-harness-lab
 python -m agent_lab demo seed
 python -m agent_lab papers read papers/input/example.pdf
+python -m agent_lab health analyze health_records/input/checkup.txt
 python -m agent_lab recipes suggest-options --ingredients "egg,tomato,rice" --servings 1 --time 20
 python -m agent_lab repos summarize https://github.com/browser-use/browser-use
 python -m agent_lab tasks list
 python -m agent_lab events list
 ```
 
-Local runtime data such as `.tasks/`, `.agent_lab/`, `papers/input/`, `papers/output/`, `recipes/output/`, and `github_reports/output/` is ignored by Git.
+Local runtime data such as `.tasks/`, `.agent_lab/`, `papers/input/`, `papers/output/`, `health_records/input/`, `health_records/output/`, `recipes/output/`, and `github_reports/output/` is ignored by Git.
 
 ## Paper Reading Assistant
 
@@ -192,6 +196,34 @@ research-report-writing   Structured research report generation
 ```
 
 These skills live in `skills/` and show how an agent can load domain knowledge on demand instead of relying on one large prompt.
+
+## Health Record Assistant
+
+The health record assistant is a safety-bounded health information extension. It reads local checkup reports or health record files, extracts common indicators, and writes a structured Markdown summary for learning and doctor-communication preparation.
+
+Safety boundary:
+
+```text
+This assistant organizes health information only.
+It does not diagnose disease, prescribe medication, or replace a licensed clinician.
+```
+
+CLI usage:
+
+```bash
+mkdir -p health_records/input health_records/output
+python -m agent_lab health analyze health_records/input/checkup.txt
+python -m agent_lab health list
+```
+
+Web usage:
+
+```text
+http://localhost:3000/zh/health
+http://localhost:3000/en/health
+```
+
+Generated reports include extracted indicators, general interpretation notes, a doctor communication checklist, non-diagnostic lifestyle information, and a clear safety notice.
 
 ## Smart Recipe Assistant
 

@@ -15,6 +15,12 @@ ACTION_PLANS: dict[str, list[str]] = {
         "Generate one structured note per paper",
         "Record paper reading events",
     ],
+    "health.analyze": [
+        "Read health record text",
+        "Extract common health indicators",
+        "Write safety-bounded Markdown health summary",
+        "Record health assistant events",
+    ],
     "recipes.suggest": [
         "Parse available ingredients and constraints",
         "Select a practical recipe pattern",

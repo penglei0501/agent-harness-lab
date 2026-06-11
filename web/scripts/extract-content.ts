@@ -11,6 +11,7 @@ import type {
   DashboardTask,
   DashboardTaskDependency,
   DashboardPaperNote,
+  DashboardHealthReport,
   RepoInsightIndex,
   RepoInsightReport,
   RecipeIndex,
@@ -27,6 +28,7 @@ const TASKS_DIR = path.join(REPO_ROOT, ".tasks");
 const SKILLS_DIR = path.join(REPO_ROOT, "skills");
 const EVENTS_PATH = path.join(REPO_ROOT, ".agent_lab", "events.jsonl");
 const PAPERS_OUTPUT_DIR = path.join(REPO_ROOT, "papers", "output");
+const HEALTH_OUTPUT_DIR = path.join(REPO_ROOT, "health_records", "output");
 const RECIPES_OUTPUT_DIR = path.join(REPO_ROOT, "recipes", "output");
 const GITHUB_REPORTS_OUTPUT_DIR = path.join(REPO_ROOT, "github_reports", "output");
 const OUT_DIR = path.join(WEB_DIR, "src", "data", "generated");
@@ -372,6 +374,30 @@ function buildDashboardData(docs: DocContent[]): DashboardData {
   }
 
   const repoReports = buildRepoInsightIndex();
+  const healthReports: DashboardHealthReport[] = [];
+  if (fs.existsSync(HEALTH_OUTPUT_DIR)) {
+    const reportFiles = fs
+      .readdirSync(HEALTH_OUTPUT_DIR)
+      .filter((file) => file.endsWith(".md"))
+      .sort((a, b) => a.localeCompare(b, undefined, { numeric: true }));
+
+    for (const file of reportFiles) {
+      const filePath = path.join(HEALTH_OUTPUT_DIR, file);
+      const content = fs.readFileSync(filePath, "utf-8");
+      const titleMatch = content.match(/^#\s+Health Record Summary:\s+(.+)$/m);
+      const sourceMatch = content.match(/^- File:\s+`(.+)`$/m);
+      const indicatorBlock = content.match(/## 3\. Extracted Indicators\s*([\s\S]*?)(?=^##\s+\d+\.|\s*$)/m);
+      const indicatorCount = (indicatorBlock?.[1].match(/^- /gm) ?? []).length;
+      const stat = fs.statSync(filePath);
+      healthReports.push({
+        title: titleMatch?.[1] ?? path.basename(file, ".md"),
+        path: repoRelative(filePath),
+        source: sourceMatch?.[1] ?? "-",
+        indicatorCount,
+        updatedAt: stat.mtime.toISOString(),
+      });
+    }
+  }
 
   return {
     tasks: {
@@ -397,6 +423,10 @@ function buildDashboardData(docs: DocContent[]): DashboardData {
     papers: {
       total: paperItems.length,
       notes: paperItems.slice(-12).reverse(),
+    },
+    health: {
+      total: healthReports.length,
+      reports: healthReports.slice(-12).reverse(),
     },
     repos: {
       total: repoReports.total,

@@ -2,7 +2,7 @@
 
 [English](README.md) | 简体中文
 
-Agent Harness Lab 是一个基于 Python + Next.js 的 Agent Harness 学习、实验与可视化项目。它通过 12 个递进式 Agent 示例展示工具调用、任务规划、Skill 加载、上下文压缩、后台任务、多 Agent 协作和 worktree 隔离等机制，并在此基础上扩展了科研论文助手、智能食谱助手和 GitHub 仓库洞察助手，展示同一套 Harness 如何扩展到不同领域工作流。
+Agent Harness Lab 是一个基于 Python + Next.js 的 Agent Harness 学习、实验与可视化项目。它通过 12 个递进式 Agent 示例展示工具调用、任务规划、Skill 加载、上下文压缩、后台任务、多 Agent 协作和 worktree 隔离等机制，并在此基础上扩展了科研论文助手、健康档案助手、智能食谱助手和 GitHub 仓库洞察助手，展示同一套 Harness 如何扩展到不同领域工作流。
 
 核心观点：
 
@@ -26,10 +26,11 @@ Harness = Tools
 - 工具注册与分发机制将 shell、文件读写、编辑、任务管理等能力抽象为可组合工具。
 - 统一 `HarnessRuntime` 串联任务计划、Skill 选择、工具注册、执行产物收集和事件记录。
 - Todo 与持久化任务系统支持多步任务规划、任务依赖、状态流转和长期目标管理。
-- `agent_lab` CLI 提供任务、事件、技能、文档、论文助手、食谱助手和仓库洞察助手的本地操作入口。
-- JSONL 事件日志记录任务创建、认领、完成、论文报告生成、食谱方案生成和仓库报告生成等运行时事件。
+- `agent_lab` CLI 提供任务、事件、技能、文档、论文助手、健康助手、食谱助手和仓库洞察助手的本地操作入口。
+- JSONL 事件日志记录任务创建、认领、完成、论文报告生成、健康摘要生成、食谱方案生成和仓库报告生成等运行时事件。
 - Next.js Web Dashboard 展示任务状态、技能索引、文档统计、事件时间线和任务依赖图。
 - 科研论文助手支持 PDF / Markdown / text 上传，并生成结构化科研阅读报告。
+- 健康档案助手支持体检报告整理，生成带安全边界的非诊断性健康信息摘要。
 - Research Skill Pack 将论文阅读、方法分析、实验分析和科研报告写作沉淀为可复用 Skill。
 - 智能食谱助手根据已有食材推荐多个结构化 JSON 食谱方案，给出推荐理由、自动推荐厨具并生成具体烹饪步骤。
 - Life Skill Pack 沉淀食谱规划、烹饪步骤和基础营养提醒能力。
@@ -44,6 +45,7 @@ Harness = Tools
 ├── agent_lab/               # 个人扩展的 runtime、工具注册、planner 和 CLI
 ├── docs/                    # 中英文课程内容源
 ├── papers/                  # 本地论文输入与报告输出目录，可按需创建
+├── health_records/          # 本地健康记录输入与安全摘要输出目录
 ├── recipes/                 # 本地结构化食谱 JSON 报告
 ├── github_reports/          # 本地 GitHub 仓库洞察报告
 ├── skills/                  # Skill 按需加载示例、Research Skill Pack 和 Life Skill Pack
@@ -64,12 +66,12 @@ CLI / Web API
   -> Planner
   -> Skill selection
   -> Tool registry
-  -> Paper / Recipe / Repository tool
+  -> Paper / Health / Recipe / Repository tool
   -> Artifact writer
   -> JSONL event log
 ```
 
-这样论文助手、食谱助手和仓库洞察助手都遵循同一套 Harness 契约：每个 action 都有执行计划、关联 Skill、注册工具、输出产物和运行时事件记录。
+这样论文助手、健康助手、食谱助手和仓库洞察助手都遵循同一套 Harness 契约：每个 action 都有执行计划、关联 Skill、注册工具、输出产物和运行时事件记录。
 
 ## 学习路径
 
@@ -115,6 +117,7 @@ npm run dev
 ```text
 http://localhost:3000/zh/demo
 http://localhost:3000/zh/papers
+http://localhost:3000/zh/health
 http://localhost:3000/zh/recipes
 http://localhost:3000/zh/repos
 ```
@@ -133,13 +136,14 @@ web/public/demo/recipes.png
 cd /path/to/agent-harness-lab
 python -m agent_lab demo seed
 python -m agent_lab papers read papers/input/example.pdf
+python -m agent_lab health analyze health_records/input/checkup.txt
 python -m agent_lab recipes suggest-options --ingredients "egg,tomato,rice" --servings 1 --time 20
 python -m agent_lab repos summarize https://github.com/browser-use/browser-use
 python -m agent_lab tasks list
 python -m agent_lab events list
 ```
 
-本地运行数据不会提交到 Git，包括 `.tasks/`、`.agent_lab/`、`papers/input/`、`papers/output/`、`recipes/output/` 和 `github_reports/output/`。
+本地运行数据不会提交到 Git，包括 `.tasks/`、`.agent_lab/`、`papers/input/`、`papers/output/`、`health_records/input/`、`health_records/output/`、`recipes/output/` 和 `github_reports/output/`。
 
 ## 论文助手
 
@@ -189,6 +193,34 @@ research-report-writing   结构化科研阅读报告生成
 ```
 
 这些 Skill 位于 `skills/` 目录，用于展示 Agent 如何按需加载领域知识，而不是只依赖一次性 Prompt。
+
+## 健康档案助手
+
+健康档案助手是一个带安全边界的健康信息整理扩展。它读取本地体检报告或健康记录文件，提取常见指标，并生成结构化 Markdown 摘要，用于学习理解和就医沟通准备。
+
+安全边界：
+
+```text
+本助手只整理健康信息。
+不能诊断疾病，不能开药，不能替代执业医师。
+```
+
+CLI 使用方式：
+
+```bash
+mkdir -p health_records/input health_records/output
+python -m agent_lab health analyze health_records/input/checkup.txt
+python -m agent_lab health list
+```
+
+Web 使用方式：
+
+```text
+http://localhost:3000/zh/health
+http://localhost:3000/en/health
+```
+
+生成报告包括提取指标、一般解释提醒、就医沟通清单、非诊断性生活方式信息和明确免责声明。
 
 ## 智能食谱助手
 

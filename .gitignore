@@ -200,6 +200,8 @@ cython_debug/
 .worktrees/
 papers/input/
 papers/output/
+health_records/input/
+health_records/output/
 recipes/output/
 github_reports/output/
 

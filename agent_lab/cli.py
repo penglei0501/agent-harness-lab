@@ -9,6 +9,7 @@ from pathlib import Path
 from .demo import seed_demo_data
 from .docs import load_docs
 from .events import load_events, tail_events
+from .health import list_health_reports
 from .papers import list_paper_notes
 from .paths import REPO_ROOT
 from .recipes import list_recipe_reports
@@ -210,6 +211,26 @@ def list_paper_notes_command(args: argparse.Namespace) -> int:
     return 0
 
 
+def analyze_health_command(args: argparse.Namespace) -> int:
+    try:
+        result = HarnessRuntime(events_path=args.events_path).run(
+            "health.analyze",
+            record_path=args.record_path,
+            output_dir=args.output_dir,
+        )
+    except (FileNotFoundError, RuntimeError, ValueError, KeyError) as exc:
+        print(str(exc))
+        return 1
+    print(f"Generated health report: {_rel(Path(result.artifacts['report_path']))}")
+    return 0
+
+
+def list_health_reports_command(args: argparse.Namespace) -> int:
+    rows = [[path.stem, _rel(path)] for path in list_health_reports(args.output_dir)]
+    _print_table(["Health Report", "Path"], rows)
+    return 0
+
+
 def suggest_recipe_command(args: argparse.Namespace) -> int:
     try:
         result = HarnessRuntime(events_path=args.events_path).run(
@@ -398,6 +419,30 @@ def build_parser() -> argparse.ArgumentParser:
 
     papers_list = papers_sub.add_parser("list", help="List generated paper notes")
     papers_list.set_defaults(func=list_paper_notes_command)
+
+    health_parser = subparsers.add_parser("health", help="Analyze health records safely")
+    health_parser.add_argument(
+        "--output-dir",
+        type=Path,
+        default=None,
+        help=argparse.SUPPRESS,
+    )
+    health_parser.add_argument(
+        "--events-path",
+        type=Path,
+        default=None,
+        help=argparse.SUPPRESS,
+    )
+    health_sub = health_parser.add_subparsers(dest="action", required=True)
+    health_analyze = health_sub.add_parser(
+        "analyze",
+        help="Generate a safety-bounded summary from one health record",
+    )
+    health_analyze.add_argument("record_path", type=Path, help="Path to a .pdf, .txt, or .md health record")
+    health_analyze.set_defaults(func=analyze_health_command)
+
+    health_list = health_sub.add_parser("list", help="List generated health reports")
+    health_list.set_defaults(func=list_health_reports_command)
 
     recipes_parser = subparsers.add_parser("recipes", help="Generate structured recipe reports")
     recipes_parser.add_argument(
