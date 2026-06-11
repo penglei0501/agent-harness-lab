@@ -1,5 +1,6 @@
-import { FileText, Github, Terminal } from "lucide-react";
+import { FileText, Terminal } from "lucide-react";
 import { Card, CardHeader, CardTitle } from "@/components/ui/card";
+import { RepoReportViewer } from "@/components/repos/repo-report-viewer";
 import { RepoInsightGenerator } from "@/components/repos/repo-insight-generator";
 import { getTranslations } from "@/lib/i18n-server";
 import type { RepoInsightIndex } from "@/types/agent-data";
@@ -32,8 +33,26 @@ export default async function ReposPage({
     form_success: t("form_success"),
     form_error: t("form_error"),
     form_refresh: t("form_refresh"),
+    progress_fetch: t("progress_fetch"),
+    progress_analyze: t("progress_analyze"),
+    progress_write: t("progress_write"),
     saved_to: t("saved_to"),
     report_title: t("report_title"),
+    copy_markdown: t("copy_markdown"),
+    copied: t("copied"),
+    download_markdown: t("download_markdown"),
+    show_report: t("show_report"),
+    hide_report: t("hide_report"),
+    empty_summary: t("empty_summary"),
+  };
+  const reportLabels = {
+    report_title: t("report_title"),
+    copy_markdown: t("copy_markdown"),
+    copied: t("copied"),
+    download_markdown: t("download_markdown"),
+    show_report: t("show_report"),
+    hide_report: t("hide_report"),
+    empty_summary: t("empty_summary"),
   };
 
   return (
@@ -79,21 +98,12 @@ export default async function ReposPage({
       {repos.items.length ? (
         <div className="grid gap-4 lg:grid-cols-2">
           {repos.items.map((report) => (
-            <Card key={report.path}>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Github size={18} className="text-blue-500" />
-                  {report.repo}
-                </CardTitle>
-              </CardHeader>
-              <p className="mb-4 line-clamp-3 text-sm text-zinc-500 dark:text-zinc-400">
-                {report.summary || t("empty_summary")}
-              </p>
-              <div className="flex flex-wrap items-center justify-between gap-3 border-t border-zinc-100 pt-4 text-xs text-zinc-500 dark:border-zinc-800 dark:text-zinc-400">
-                <span>{report.path}</span>
-                <span>{new Date(report.updatedAt).toLocaleString(locale)}</span>
-              </div>
-            </Card>
+            <RepoReportViewer
+              key={report.path}
+              report={report}
+              labels={reportLabels}
+              defaultOpen={false}
+            />
           ))}
         </div>
       ) : (

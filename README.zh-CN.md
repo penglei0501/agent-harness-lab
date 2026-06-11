@@ -263,6 +263,8 @@ http://localhost:3000/zh/repos
 http://localhost:3000/en/repos
 ```
 
+Web 页面支持生成报告、显示进度、刷新本地缓存、复制 Markdown、下载 Markdown 文件和展开历史报告。
+
 生成的报告保存在：
 
 ```text

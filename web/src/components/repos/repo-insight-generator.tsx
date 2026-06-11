@@ -1,18 +1,12 @@
 "use client";
 
-import { FormEvent, useMemo, useState } from "react";
-import { GitBranch, Loader2, SearchCode } from "lucide-react";
-import { unified } from "unified";
-import remarkParse from "remark-parse";
-import remarkGfm from "remark-gfm";
-import remarkRehype from "remark-rehype";
-import rehypeRaw from "rehype-raw";
-import rehypeHighlight from "rehype-highlight";
-import rehypeStringify from "rehype-stringify";
+import { FormEvent, useEffect, useState } from "react";
+import { CheckCircle2, GitBranch, Loader2, SearchCode } from "lucide-react";
 import { Card, CardHeader, CardTitle } from "@/components/ui/card";
+import { RepoReportViewer, type RepoReportViewerLabels } from "@/components/repos/repo-report-viewer";
 import type { RepoInsightReport } from "@/types/agent-data";
 
-interface RepoInsightLabels {
+interface RepoInsightLabels extends RepoReportViewerLabels {
   generator_title: string;
   generator_desc: string;
   form_url: string;
@@ -23,7 +17,9 @@ interface RepoInsightLabels {
   form_error: string;
   form_refresh: string;
   saved_to: string;
-  report_title: string;
+  progress_fetch: string;
+  progress_analyze: string;
+  progress_write: string;
 }
 
 interface RepoInsightGeneratorProps {
@@ -39,32 +35,30 @@ interface RepoInsightResponse {
 const inputClass =
   "min-h-10 rounded-md border border-zinc-200 bg-white px-3 text-sm outline-none transition-colors focus:border-blue-500 dark:border-zinc-700 dark:bg-zinc-950";
 
-function renderMarkdown(markdown: string): string {
-  const result = unified()
-    .use(remarkParse)
-    .use(remarkGfm)
-    .use(remarkRehype, { allowDangerousHtml: true })
-    .use(rehypeRaw)
-    .use(rehypeHighlight, { detect: false, ignoreMissing: true })
-    .use(rehypeStringify)
-    .processSync(markdown);
-  return String(result).replace(
-    /<pre><code class="hljs language-(\w+)">/g,
-    '<pre class="code-block" data-language="$1"><code class="hljs language-$1">'
-  );
-}
-
 export function RepoInsightGenerator({ labels }: RepoInsightGeneratorProps) {
   const [githubUrl, setGithubUrl] = useState("https://github.com/penglei0501/agent-harness-lab");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [refresh, setRefresh] = useState(false);
   const [report, setReport] = useState<RepoInsightReport | null>(null);
+  const [progressIndex, setProgressIndex] = useState(0);
 
-  const reportHtml = useMemo(
-    () => (report ? renderMarkdown(report.markdown) : ""),
-    [report]
-  );
+  const progressSteps = [
+    labels.progress_fetch,
+    labels.progress_analyze,
+    labels.progress_write,
+  ];
+
+  useEffect(() => {
+    if (!loading) {
+      setProgressIndex(0);
+      return;
+    }
+    const timer = window.setInterval(() => {
+      setProgressIndex((value) => Math.min(value + 1, progressSteps.length - 1));
+    }, 1600);
+    return () => window.clearInterval(timer);
+  }, [loading, progressSteps.length]);
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -145,18 +139,30 @@ export function RepoInsightGenerator({ labels }: RepoInsightGeneratorProps) {
             {error}
           </p>
         )}
+
+        {loading && (
+          <div className="mt-5 grid gap-2 border-t border-zinc-100 pt-4 dark:border-zinc-800">
+            {progressSteps.map((step, index) => (
+              <div
+                key={step}
+                className="flex items-center gap-2 text-sm text-zinc-600 dark:text-zinc-300"
+              >
+                {index < progressIndex ? (
+                  <CheckCircle2 size={16} className="text-emerald-500" />
+                ) : index === progressIndex ? (
+                  <Loader2 size={16} className="animate-spin text-blue-500" />
+                ) : (
+                  <span className="h-4 w-4 rounded-full border border-zinc-300 dark:border-zinc-600" />
+                )}
+                {step}
+              </div>
+            ))}
+          </div>
+        )}
       </Card>
 
       {report && (
-        <Card>
-          <CardHeader>
-            <CardTitle>{labels.report_title}</CardTitle>
-          </CardHeader>
-          <div
-            className="prose-custom"
-            dangerouslySetInnerHTML={{ __html: reportHtml }}
-          />
-        </Card>
+        <RepoReportViewer report={report} labels={labels} defaultOpen />
       )}
     </section>
   );

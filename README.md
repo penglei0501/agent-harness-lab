@@ -262,6 +262,9 @@ http://localhost:3000/zh/repos
 http://localhost:3000/en/repos
 ```
 
+The Web page can generate a report, show progress, refresh the local cache, copy the Markdown,
+download the Markdown file, and expand historical reports.
+
 Generated reports are saved in:
 
 ```text
